@@ -35,7 +35,7 @@ const data = {
   },
   teams: [
     {
-      name: 'Local-AI',
+      name: 'lokal-ai',
       logo: GalleryVerticalEnd,
       plan: 'Enterprise',
     },
