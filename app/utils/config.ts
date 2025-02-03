@@ -10,19 +10,6 @@ export const SIDEBAR_CONFIG = {
   ],
   navMain: [
     {
-      title: 'LLM Models',
-      url: '#',
-      icon: SquareTerminal,
-      isActive: true,
-      iconName: 'llm.png',
-      items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-      ],
-    },
-    {
       title: 'Chat',
       url: '#',
       icon: SquareTerminal,
@@ -31,6 +18,19 @@ export const SIDEBAR_CONFIG = {
       items: [
         {
           title: 'New Chat',
+          url: '#',
+        },
+      ],
+    },
+    {
+      title: 'LLM Models',
+      url: '#',
+      icon: SquareTerminal,
+      isActive: true,
+      iconName: 'llm.png',
+      items: [
+        {
+          title: 'History',
           url: '#',
         },
       ],
