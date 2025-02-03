@@ -2,7 +2,7 @@ import { Bot, Brain, Settings2, SquareTerminal } from 'lucide-react'
 export const SIDEBAR_CONFIG = {
   teams: [
     {
-      name: 'lokal-ai',
+      name: 'Lokal-AI',
       logo: Brain,
       plan: 'Enterprise',
       iconName: 'logo.png',
@@ -23,14 +23,14 @@ export const SIDEBAR_CONFIG = {
       ],
     },
     {
-      title: 'Chat History',
+      title: 'Chat',
       url: '#',
       icon: SquareTerminal,
       isActive: true,
       iconName: 'history.png',
       items: [
         {
-          title: 'History',
+          title: 'New Chat',
           url: '#',
         },
       ],
