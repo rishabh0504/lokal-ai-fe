@@ -7,13 +7,16 @@
     "build": "next build",
     "start": "next start",
     "prepare": "husky || true",
-    "lint": "next lint",
+    "lint": "next lint --max-warnings=0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "format:check": "prettier --check .",
+    "test": "jest --ci --coverage --passWithNoTests",
+    "test:watch": "jest --watch",
+    "clean": "rm -rf node_modules .next "
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.10.6",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-alert-dialog": "^1.1.5",
     "@radix-ui/react-aspect-ratio": "^1.1.1",
