@@ -1,10 +1,11 @@
-import { BookOpen, Bot, Brain, Settings2, SquareTerminal } from 'lucide-react'
+import { Bot, Brain, Settings2, SquareTerminal } from 'lucide-react'
 export const SIDEBAR_CONFIG = {
   teams: [
     {
       name: 'lokal-ai',
       logo: Brain,
       plan: 'Enterprise',
+      iconName: 'logo.png',
     },
   ],
   navMain: [
@@ -13,6 +14,7 @@ export const SIDEBAR_CONFIG = {
       url: '#',
       icon: SquareTerminal,
       isActive: true,
+      iconName: 'history.png',
       items: [
         {
           title: 'History',
@@ -24,6 +26,7 @@ export const SIDEBAR_CONFIG = {
       title: 'Text Generator',
       url: '#',
       icon: Bot,
+      iconName: 'chat.png',
       items: [
         {
           title: 'Genesis',
@@ -32,12 +35,25 @@ export const SIDEBAR_CONFIG = {
       ],
     },
     {
-      title: 'Image Generator',
+      title: 'Audio Generator',
       url: '#',
-      icon: BookOpen,
+      icon: Settings2,
+      iconName: 'audio.png',
       items: [
         {
-          title: 'History',
+          title: 'General',
+          url: '#',
+        },
+      ],
+    },
+    {
+      title: 'Image Generator',
+      url: '#',
+      icon: Settings2,
+      iconName: 'image.png',
+      items: [
+        {
+          title: 'General',
           url: '#',
         },
       ],
@@ -46,6 +62,7 @@ export const SIDEBAR_CONFIG = {
       title: 'Video Generator',
       url: '#',
       icon: Settings2,
+      iconName: 'video.png',
       items: [
         {
           title: 'General',
