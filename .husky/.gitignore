@@ -1,0 +1,66 @@
+# Logs
+logs
+*.log
+npm-debug.log
+yarn-debug.log
+pnpm-debug.log
+
+# Dependency directories
+node_modules
+/public/images/optimized
+
+# Next.js build output
+.next
+out
+build
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# IDE specific files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# macOS specific
+.DS_Store
+Thumbs.db
+
+# Cache directories
+.cache
+/.pnpm-store
+
+# Temporary files
+*~
+\#*
+*.swp
+*.bak
+*.tmp
+*.orig
+
+# Editor settings
+.prettierrc.cache
+.eslintcache
+
+# Package manager lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+#Optional coverage files
+coverage
+
+# Optional debug files
+*.orig
+*.patch
