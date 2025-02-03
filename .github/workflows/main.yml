@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'yarn'
+        env:
+          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
