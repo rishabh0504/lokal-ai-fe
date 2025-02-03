@@ -86,13 +86,11 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
-      "prettier --write"
+      "prettier --write",
+      "yarn test --findRelatedTests"
     ],
     "*.{md,json}": [
       "prettier --write"
-    ],
-    "*.{js,jsx,ts,tsx,md,json}": [
-      "git add"
     ]
   }
 }
