@@ -1,5 +1,9 @@
-import { Brain, SquareTerminal } from 'lucide-react'
-export const SIDEBAR_CONFIG = {
+import { Brain, LucideIcon, SquareTerminal } from 'lucide-react'
+import Chat from '../components/chat'
+import { SidebarType } from './types'
+export type IconComponent = LucideIcon
+
+export const SIDEBAR_CONFIG: SidebarType = {
   teams: [
     {
       name: 'Lokal-AI',
@@ -8,16 +12,32 @@ export const SIDEBAR_CONFIG = {
       iconName: 'logo.png',
     },
   ],
-  navMain: [
+  navItems: [
     {
       title: 'Chat History',
       url: '#',
       icon: SquareTerminal,
       isActive: true,
+      type: 'chat_history',
       iconName: 'history.png',
       items: [
         {
-          title: 'New Chat',
+          name: 'New Chat',
+          url: '#',
+          component: Chat,
+        },
+      ],
+    },
+    {
+      title: 'Agents',
+      url: '#',
+      icon: SquareTerminal,
+      isActive: true,
+      type: 'agent',
+      iconName: 'agents.png',
+      items: [
+        {
+          name: 'New Agent',
           url: '#',
         },
       ],
@@ -28,12 +48,8 @@ export const SIDEBAR_CONFIG = {
       icon: SquareTerminal,
       isActive: true,
       iconName: 'llm.png',
-      items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-      ],
+      type: 'llm_model',
+      items: [],
     },
   ],
 }

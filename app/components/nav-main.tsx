@@ -1,7 +1,5 @@
 'use client'
 
-import { ChevronRight, type LucideIcon } from 'lucide-react'
-
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import CustomIcon from '@/components/ui/custom-icons'
 import {
@@ -14,28 +12,32 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
+import { ChevronRight } from 'lucide-react'
+import { useSelector } from 'react-redux'
+import { RootState } from '../store/store'
+import { NAVITEM_TYPES } from '../utils/common.constant'
+import { SIDEBAR_CONFIG } from '../utils/config'
+import { NavItem } from '../utils/types'
 
-export function NavMain({
-  items,
-}: {
-  items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-    isActive?: boolean
-    iconName?: string
-    items?: {
-      title: string
-      url: string
-    }[]
-  }[]
-}) {
-  // const { items: llmModels, loading, error } = useSelector((state: RootState) => state.llms)
+export function NavMain() {
+  const { items: llms } = useSelector((state: RootState) => state.llms)
+  const { items: agents } = useSelector((state: RootState) => state.agents)
+
+  console.log(agents)
+  const sidebarConfigItem = SIDEBAR_CONFIG
+  sidebarConfigItem.navItems.forEach((eachItem: NavItem) => {
+    if (eachItem.type === NAVITEM_TYPES.LLM_TYPE) {
+      eachItem.items = llms
+    }
+    if (eachItem.type === NAVITEM_TYPES.AGENT_TYPE) {
+      eachItem.items = agents
+    }
+  })
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
+        {sidebarConfigItem.navItems.map((item) => (
           <Collapsible
             key={item.title}
             asChild
@@ -43,20 +45,22 @@ export function NavMain({
             className="group/collapsible"
           >
             <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
+              <CollapsibleTrigger asChild className="bg-gray-100">
                 <SidebarMenuButton tooltip={item.title} className="py-5">
-                  {item.icon && <CustomIcon src={`/icons/${item?.iconName}`} />}
-                  <span>{item.title}</span>
+                  {item.iconName && <CustomIcon src={`/icons/${item?.iconName}`} />}
+                  <span>
+                    <b>{item.title}</b>
+                  </span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarMenuSub>
                   {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
+                    <SidebarMenuSubItem key={subItem.name}>
                       <SidebarMenuSubButton asChild>
                         <a href={subItem.url}>
-                          <span>{subItem.title}</span>
+                          <span>{subItem.name}</span>
                         </a>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>

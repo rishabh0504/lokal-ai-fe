@@ -16,17 +16,19 @@ import { TeamSwitcher } from './team-switcher'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={SIDEBAR_CONFIG.teams} />
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={SIDEBAR_CONFIG.navMain} />
-      </SidebarContent>
-      <SidebarFooter>
-        <NavUser />
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
+    <>
+      <Sidebar collapsible="icon" {...props}>
+        <SidebarHeader>
+          <TeamSwitcher teams={SIDEBAR_CONFIG.teams} />
+        </SidebarHeader>
+        <SidebarContent>
+          <NavMain />
+        </SidebarContent>
+        <SidebarFooter>
+          <NavUser />
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+    </>
   )
 }
