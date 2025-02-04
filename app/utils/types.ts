@@ -22,7 +22,7 @@ export interface LLMModel {
 export type Items = {
   name: string
   url: string
-  component?: React.ComponentType
+  component?: React.ComponentType | undefined
 }
 export type NavItem = {
   title: string
@@ -30,6 +30,7 @@ export type NavItem = {
   icon: IconComponent
   isActive: boolean
   type: string
+  component?: React.ComponentType
   iconName: string
   items: Items[]
 }
@@ -42,6 +43,12 @@ export type Teams = {
 export type SidebarType = {
   teams: Teams[]
   navItems: NavItem[]
+}
+
+export interface SubNavItem {
+  name: string
+  url: string
+  component?: React.ReactNode
 }
 
 export type Agent = {

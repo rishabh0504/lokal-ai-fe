@@ -23,14 +23,19 @@ export function NavMain() {
   const { items: llms } = useSelector((state: RootState) => state.llms)
   const { items: agents } = useSelector((state: RootState) => state.agents)
 
-  console.log(agents)
   const sidebarConfigItem = SIDEBAR_CONFIG
   sidebarConfigItem.navItems.forEach((eachItem: NavItem) => {
     if (eachItem.type === NAVITEM_TYPES.LLM_TYPE) {
       eachItem.items = llms
     }
     if (eachItem.type === NAVITEM_TYPES.AGENT_TYPE) {
-      eachItem.items = agents
+      eachItem.items = [
+        {
+          name: 'Create new Agent',
+          url: '/agent',
+        },
+        ...agents,
+      ]
     }
   })
   return (

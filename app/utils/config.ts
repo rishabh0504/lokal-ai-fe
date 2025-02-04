@@ -23,7 +23,7 @@ export const SIDEBAR_CONFIG: SidebarType = {
       items: [
         {
           name: 'New Chat',
-          url: '#',
+          url: '/chat',
           component: Chat,
         },
       ],
@@ -38,7 +38,7 @@ export const SIDEBAR_CONFIG: SidebarType = {
       items: [
         {
           name: 'New Agent',
-          url: '#',
+          url: '/agent',
         },
       ],
     },

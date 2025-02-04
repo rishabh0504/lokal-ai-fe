@@ -9,12 +9,21 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { useDispatch } from 'react-redux'
+import { fetchAgents } from '../store/slices/agent.reducer'
+import { fetchLLMs } from '../store/slices/llm.reducer'
+import { AppDispatch } from '../store/store'
 import { SIDEBAR_CONFIG } from '../utils/config'
 import { NavMain } from './nav-main'
 import { NavUser } from './nav-user'
 import { TeamSwitcher } from './team-switcher'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const dispatch = useDispatch<AppDispatch>()
+  React.useEffect(() => {
+    dispatch(fetchLLMs())
+    dispatch(fetchAgents())
+  }, [dispatch])
   return (
     <>
       <Sidebar collapsible="icon" {...props}>
