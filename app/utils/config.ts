@@ -1,4 +1,4 @@
-import { Bot, Brain, Settings2, SquareTerminal } from 'lucide-react'
+import { Brain, SquareTerminal } from 'lucide-react'
 export const SIDEBAR_CONFIG = {
   teams: [
     {
@@ -10,7 +10,7 @@ export const SIDEBAR_CONFIG = {
   ],
   navMain: [
     {
-      title: 'Chat',
+      title: 'Chat History',
       url: '#',
       icon: SquareTerminal,
       isActive: true,
@@ -31,54 +31,6 @@ export const SIDEBAR_CONFIG = {
       items: [
         {
           title: 'History',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Text Generator',
-      url: '#',
-      icon: Bot,
-      iconName: 'chat.png',
-      items: [
-        {
-          title: 'Genesis',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Audio Generator',
-      url: '#',
-      icon: Settings2,
-      iconName: 'audio.png',
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Image Generator',
-      url: '#',
-      icon: Settings2,
-      iconName: 'image.png',
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Video Generator',
-      url: '#',
-      icon: Settings2,
-      iconName: 'video.png',
-      items: [
-        {
-          title: 'General',
           url: '#',
         },
       ],

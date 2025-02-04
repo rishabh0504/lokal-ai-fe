@@ -30,6 +30,7 @@ export function NavMain({
     }[]
   }[]
 }) {
+  // const { items: llmModels, loading, error } = useSelector((state: RootState) => state.llms)
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>

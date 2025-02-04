@@ -7,11 +7,24 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { AppSidebar } from './components/app-sidebar'
 import { Separator } from '@/components/ui/separator'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppSidebar } from './components/app-sidebar'
+import { fetchLLMs } from './store/slices/llm.reducer'
+import { AppDispatch, RootState } from './store/store'
 
 export default function Home() {
+  const dispatch = useDispatch<AppDispatch>()
+  const { items } = useSelector((state: RootState) => state.llms)
+
+  useEffect(() => {
+    dispatch(fetchLLMs())
+  }, [dispatch])
+
+  console.log(items)
+
   return (
     <SidebarProvider>
       <AppSidebar />
