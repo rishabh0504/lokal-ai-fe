@@ -29,7 +29,7 @@ export default function Chat() {
           <div
             key={index}
             className={cn(
-              'flex items-end space-x-2',
+              'flex items-end space-x-2 my-1',
               message.sender === 'me' ? 'justify-end' : 'justify-start',
             )}
           >
@@ -41,7 +41,7 @@ export default function Chat() {
             )}
             <div
               className={cn(
-                'p-2 rounded-lg text-sm',
+                'p-2 rounded-lg text-sm my-1',
                 message.sender === 'me'
                   ? 'bg-blue-500 text-white'
                   : 'bg-muted dark:bg-muted-foreground/10',

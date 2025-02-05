@@ -32,7 +32,7 @@ export type NavItem = {
   type: string
   component?: React.ComponentType
   iconName: string
-  items: Items[]
+  items?: Items[]
 }
 export type Teams = {
   name: string

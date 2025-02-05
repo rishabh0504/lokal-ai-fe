@@ -9,6 +9,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import Link from 'next/link'
 import { useDispatch } from 'react-redux'
 import { fetchAgents } from '../store/slices/agent.reducer'
 import { fetchLLMs } from '../store/slices/llm.reducer'
@@ -26,10 +27,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [dispatch])
   return (
     <>
-      <Sidebar collapsible="icon" {...props}>
-        <SidebarHeader>
-          <TeamSwitcher teams={SIDEBAR_CONFIG.teams} />
-        </SidebarHeader>
+      <Sidebar collapsible="icon" {...props} className="px-2">
+        <Link href="/" passHref>
+          <SidebarHeader>
+            <TeamSwitcher teams={SIDEBAR_CONFIG.teams} />
+          </SidebarHeader>
+        </Link>
         <SidebarContent>
           <NavMain />
         </SidebarContent>
