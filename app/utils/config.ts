@@ -1,5 +1,9 @@
-import { Bot, Brain, Settings2, SquareTerminal } from 'lucide-react'
-export const SIDEBAR_CONFIG = {
+import { Brain, LucideIcon, SquareTerminal } from 'lucide-react'
+import Chat from '../(routes)/chat/components/chat'
+import { SidebarType } from './types'
+export type IconComponent = LucideIcon
+
+export const SIDEBAR_CONFIG: SidebarType = {
   teams: [
     {
       name: 'Lokal-AI',
@@ -8,80 +12,90 @@ export const SIDEBAR_CONFIG = {
       iconName: 'logo.png',
     },
   ],
-  navMain: [
+  navItems: [
     {
-      title: 'Chat',
+      title: 'Dashboard',
+      url: '/',
+      icon: SquareTerminal,
+      isActive: false,
+      type: 'dashboard',
+      iconName: 'history.png',
+    },
+    {
+      title: 'Chat History',
       url: '#',
       icon: SquareTerminal,
-      isActive: true,
+      isActive: false,
+      type: 'chat_history',
       iconName: 'history.png',
       items: [
         {
-          title: 'New Chat',
-          url: '#',
+          name: 'New Chat',
+          url: '/chat',
+          component: Chat,
         },
       ],
+    },
+    {
+      title: 'Agents',
+      url: '/agent',
+      icon: SquareTerminal,
+      isActive: false,
+      type: 'agent',
+      iconName: 'agents.png',
     },
     {
       title: 'LLM Models',
-      url: '#',
+      url: '/llm',
       icon: SquareTerminal,
-      isActive: true,
+      isActive: false,
       iconName: 'llm.png',
-      items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Text Generator',
-      url: '#',
-      icon: Bot,
-      iconName: 'chat.png',
-      items: [
-        {
-          title: 'Genesis',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Audio Generator',
-      url: '#',
-      icon: Settings2,
-      iconName: 'audio.png',
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Image Generator',
-      url: '#',
-      icon: Settings2,
-      iconName: 'image.png',
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Video Generator',
-      url: '#',
-      icon: Settings2,
-      iconName: 'video.png',
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-      ],
+      type: 'llm_model',
     },
   ],
+}
+
+export const DASHBOARD_STATS = {
+  stats: [
+    {
+      title: 'Total Revenue',
+      value: '$45,231.89',
+      description: '+20.1% from last month',
+    },
+    {
+      title: 'Subscriptions',
+      value: '+2350',
+      description: '+180.1% from last month',
+    },
+    {
+      title: 'Sales',
+      value: '+12,234',
+      description: '+19% from last month',
+    },
+  ],
+  detailedStats: {
+    data: [
+      { name: 'Jan', Revenue: 4000 },
+      { name: 'Feb', Revenue: 3000 },
+      { name: 'Mar', Revenue: 2000 },
+      { name: 'Apr', Revenue: 2780 },
+      { name: 'May', Revenue: 1890 },
+      { name: 'Jun', Revenue: 2390 },
+      { name: 'Jul', Revenue: 3490 },
+      { name: 'Aug', Revenue: 2780 },
+      { name: 'Sep', Revenue: 1890 },
+      { name: 'Oct', Revenue: 2390 },
+      { name: 'Nov', Revenue: 3490 },
+      { name: 'Dec', Revenue: 3490 },
+    ],
+  },
+}
+
+export const API_CONFIG = {
+  llms: {
+    get: 'llm-models',
+  },
+  agents: {
+    get: 'agents',
+  },
 }

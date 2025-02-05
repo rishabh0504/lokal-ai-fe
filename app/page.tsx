@@ -1,47 +1,60 @@
 'use client'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { AppSidebar } from './components/app-sidebar'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { Tooltip } from '@/components/ui/tooltip'
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { DASHBOARD_STATS } from './utils/config'
 
 export default function Home() {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Building Your Application</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="aspect-video rounded-xl bg-muted/50">Models</div>
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-          </div>
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+    <div className="w-full flex flex-col px-4 md:px-6 lg:px-8">
+      <div className="flex justify-between items-center py-4">
+        <Label htmlFor="Dashboard" className="text-lg font-semibold tracking-tight text-primary">
+          Dashboard
+        </Label>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <Separator />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 grid-flow-row auto-rows-min">
+          <>
+            {DASHBOARD_STATS.stats.map((eachStat, index: number) => (
+              <Card key={index}>
+                <CardHeader className="px-4">
+                  <CardTitle className="flex items-center space-x-2">
+                    <span className="text-sm">{eachStat.title}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4">
+                  <CardTitle className="text-xl">{eachStat.value}</CardTitle>
+                  <CardDescription>{eachStat.description}</CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+        <Card>
+          <CardHeader>
+            <CardTitle>Detailed Analytics</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <ResponsiveContainer height={300}>
+              <BarChart
+                data={DASHBOARD_STATS.detailedStats.data}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="2 2" stroke="var(--border)" />{' '}
+                <XAxis dataKey="name" stroke="var(--foreground)" />{' '}
+                <YAxis stroke="var(--foreground)" />
+                <Tooltip />
+                <Legend wrapperStyle={{ color: 'var(--foreground)' }} />
+                <Bar dataKey="Revenue" fill="#000000" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   )
 }
