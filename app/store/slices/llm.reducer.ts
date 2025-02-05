@@ -1,8 +1,8 @@
-import { Items, LLMModel } from '@/app/utils/types'
+import { LLMModel } from '@/app/utils/types'
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface LLMState {
-  items: Items[]
+  items: LLMModel[]
   loading: boolean
   error: string | null
 }
@@ -19,8 +19,7 @@ export const fetchLLMs = createAsyncThunk('llms/fetchLLMs', async () => {
     throw new Error('Failed to fetch LLMs')
   }
   const data: LLMModel[] = await response.json()
-  const llms = data.map((eachItem) => ({ name: eachItem.model, url: '#', component: null }))
-  return llms
+  return data
 })
 
 export const llmSlice = createSlice({
@@ -33,7 +32,7 @@ export const llmSlice = createSlice({
         state.loading = true
         state.error = null
       })
-      .addCase(fetchLLMs.fulfilled, (state, action: PayloadAction<Items[]>) => {
+      .addCase(fetchLLMs.fulfilled, (state, action: PayloadAction<LLMModel[]>) => {
         state.loading = false
         state.items = action.payload
       })

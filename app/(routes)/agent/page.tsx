@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
-import * as React from 'react'
+import { useMemo, useState } from 'react'
 
 import { RootState } from '@/app/store/store'
 import { Agent } from '@/app/utils/types'
@@ -39,111 +39,118 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import type { NextPage } from 'next/types'
 import { useSelector } from 'react-redux'
 
-export const columns: ColumnDef<Agent>[] = [
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'agentName',
-    header: 'Agent name',
-    cell: ({ row }) => <div className="capitalize">{row.getValue('agentName')}</div>,
-  },
-  {
-    accessorKey: 'model',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Model
-          <ArrowUpDown />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="lowercase">{row.getValue('model')}</div>,
-  },
-  {
-    accessorKey: 'providerName',
-    header: 'Provider name',
-    cell: ({ row }) => <div className="capitalize">{row.getValue('providerName')}</div>,
-  },
-  {
-    accessorKey: 'created_at',
-    header: () => <div className="text-right">Created Date</div>,
-    cell: ({ row }) => {
-      const createdAt = String(row.getValue('created_at'))
-      const formatted = formatDateForTable(createdAt)
-      return <div className="text-right font-medium">{formatted}</div>
-    },
-  },
-  {
-    accessorKey: 'updated_at',
-    header: () => <div className="text-right">Updated Date</div>,
-    cell: ({ row }) => {
-      const updatedAt = String(row.getValue('updated_at'))
-      const formatted = formatDateForTable(updatedAt)
-      return <div className="text-right font-medium">{formatted}</div>
-    },
-  },
-  {
-    id: 'actions',
-    enableHiding: false,
-    cell: ({ row }) => {
-      const agent = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(agent.id)}>
-              Copy Agent ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  },
-]
-
-export default function AgentPage() {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
+const AgentPage: NextPage = () => {
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = useState({})
   const agents = useSelector((state: RootState) => state.agents.items) || []
 
-  const table = useReactTable({
-    data: agents, // use agents here
+  const memoizedAgents = useMemo(() => agents, [agents])
+
+  const columns: ColumnDef<Agent>[] = useMemo(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'agentName',
+        header: 'Agent name',
+        cell: ({ row }) => <div className="capitalize">{row.getValue('agentName')}</div>,
+      },
+      {
+        accessorKey: 'model',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Model
+              <ArrowUpDown />
+            </Button>
+          )
+        },
+        cell: ({ row }) => <div className="lowercase">{row.getValue('model')}</div>,
+      },
+      {
+        accessorKey: 'providerName',
+        header: 'Provider name',
+        cell: ({ row }) => <div className="capitalize">{row.getValue('providerName')}</div>,
+      },
+      {
+        accessorKey: 'created_at',
+        header: () => <div className="text-right">Created Date</div>,
+        cell: ({ row }) => {
+          const createdAt = String(row.getValue('created_at'))
+          const formatted = formatDateForTable(createdAt)
+          return <div className="text-right font-medium">{formatted}</div>
+        },
+      },
+      {
+        accessorKey: 'updated_at',
+        header: () => <div className="text-right">Updated Date</div>,
+        cell: ({ row }) => {
+          const updatedAt = String(row.getValue('updated_at'))
+          const formatted = formatDateForTable(updatedAt)
+          return <div className="text-right font-medium">{formatted}</div>
+        },
+      },
+      {
+        id: 'actions',
+        enableHiding: false,
+        cell: ({ row }) => {
+          const agent = row.original
+
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => navigator.clipboard.writeText(agent.id)}>
+                  Copy Agent ID
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>View customer</DropdownMenuItem>
+                <DropdownMenuItem>View payment details</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
+        },
+      },
+    ],
+    [],
+  )
+
+  const table = useReactTable<Agent>({
+    data: memoizedAgents,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -245,7 +252,7 @@ export default function AgentPage() {
           </div>
           <div className="flex items-center justify-end space-x-2 py-4">
             <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredSelectedRowModel().rows.length} of{' '}
+              {table.getFilteredSelectedRowModel().rows.length} of
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
             <div className="space-x-2">
@@ -272,3 +279,5 @@ export default function AgentPage() {
     </div>
   )
 }
+
+export default AgentPage
