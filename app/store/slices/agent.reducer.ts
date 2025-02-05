@@ -1,8 +1,8 @@
-import { Agent, Items } from '@/app/utils/types'
+import { Agent } from '@/app/utils/types'
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface AgentState {
-  items: Items[]
+  items: Agent[]
   loading: boolean
   error: string | null
 }
@@ -19,9 +19,7 @@ export const fetchAgents = createAsyncThunk('agents/fetchAgents', async () => {
     throw new Error('Failed to fetch LLMs')
   }
   const data: Agent[] = await response.json()
-  const agents = data.map((eachItem) => ({ name: eachItem.agentName, url: '#', component: null }))
-
-  return agents
+  return data
 })
 
 export const agentsSlice = createSlice({
@@ -34,7 +32,7 @@ export const agentsSlice = createSlice({
         state.loading = true
         state.error = null
       })
-      .addCase(fetchAgents.fulfilled, (state, action: PayloadAction<Items[]>) => {
+      .addCase(fetchAgents.fulfilled, (state, action: PayloadAction<Agent[]>) => {
         state.loading = false
         state.items = action.payload
       })
