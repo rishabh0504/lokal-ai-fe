@@ -14,8 +14,8 @@ import {
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import CreateAgent from '@/app/(routes)/agent/components/create-agent'
 import { RootState } from '@/app/store/store'
-import { Agent } from '@/app/utils/types'
 import { formatDateForTable } from '@/app/utils/util-service'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -24,7 +24,6 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -41,6 +40,8 @@ import {
 } from '@/components/ui/table'
 import type { NextPage } from 'next/types'
 import { useSelector } from 'react-redux'
+import DeleteAgent from './components/delete-agent'
+import { Agent } from './types/type'
 
 const AgentPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -48,6 +49,11 @@ const AgentPage: NextPage = () => {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
   const agents = useSelector((state: RootState) => state.agents.items) || []
+
+  const [agentIdToBeEdited, setAgentIdToBeEdited] = useState<string | undefined>(undefined)
+  const [isCreateAgentOpen, setIsCreateAgentOpen] = useState(false)
+  const [agentIdToBeDeleted, setAgentIdToBeDeleted] = useState<string | undefined>(undefined)
+  const [isDeleteAgentOpen, setIsDeleteAgentOpen] = useState(false)
 
   const memoizedAgents = useMemo(() => agents, [agents])
 
@@ -76,12 +82,12 @@ const AgentPage: NextPage = () => {
         enableHiding: false,
       },
       {
-        accessorKey: 'agentName',
+        accessorKey: 'name',
         header: 'Agent name',
-        cell: ({ row }) => <div className="capitalize">{row.getValue('agentName')}</div>,
+        cell: ({ row }) => <div className="capitalize">{row.getValue('name')}</div>,
       },
       {
-        accessorKey: 'model',
+        accessorKey: 'llmModelId',
         header: ({ column }) => {
           return (
             <Button
@@ -93,12 +99,7 @@ const AgentPage: NextPage = () => {
             </Button>
           )
         },
-        cell: ({ row }) => <div className="lowercase">{row.getValue('model')}</div>,
-      },
-      {
-        accessorKey: 'providerName',
-        header: 'Provider name',
-        cell: ({ row }) => <div className="capitalize">{row.getValue('providerName')}</div>,
+        cell: ({ row }) => <div className="lowercase">{row.getValue('llmModelId')}</div>,
       },
       {
         accessorKey: 'created_at',
@@ -133,13 +134,13 @@ const AgentPage: NextPage = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => navigator.clipboard.writeText(agent.id)}>
-                  Copy Agent ID
+                <DropdownMenuItem onClick={() => handleEditAgent(agent.id)}>
+                  Edit Agent
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>View customer</DropdownMenuItem>
-                <DropdownMenuItem>View payment details</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => deleteAgent(agent.id)}>
+                  Delete Agent
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )
@@ -168,17 +169,36 @@ const AgentPage: NextPage = () => {
     },
   })
 
+  const handleEditAgent = (agentId: string) => {
+    setAgentIdToBeEdited(agentId)
+    setIsCreateAgentOpen(true)
+  }
+
+  const handleCreateAgentClose = () => {
+    setIsCreateAgentOpen(false)
+    setAgentIdToBeEdited(undefined)
+  }
+  const deleteAgent = (agentId: string) => {
+    setAgentIdToBeDeleted(agentId)
+    setIsDeleteAgentOpen(true)
+  }
+  const handleDeleteAgentClose = () => {
+    setIsDeleteAgentOpen(false)
+    setAgentIdToBeDeleted(undefined)
+  }
+
   return (
     <div className="w-full flex flex-col px-4 md:px-6 lg:px-8">
       <div className="flex justify-between items-center py-4">
         <Label htmlFor="Agent" className="text-lg font-semibold tracking-tight text-primary">
           Agent
         </Label>
+        <Button variant="outline" onClick={() => setIsCreateAgentOpen(true)}>
+          Create Agent
+        </Button>
       </div>
-
       <div className="flex flex-col gap-4">
         <Separator />
-
         <div className="w-full">
           <div className="flex items-center py-4">
             <Input
@@ -276,6 +296,22 @@ const AgentPage: NextPage = () => {
           </div>
         </div>
       </div>
+      {/* Conditionally render CreateAgent dialog */}
+      {isCreateAgentOpen && (
+        <CreateAgent
+          agentId={agentIdToBeEdited}
+          open={isCreateAgentOpen}
+          onClose={handleCreateAgentClose}
+        />
+      )}
+
+      {isDeleteAgentOpen && (
+        <DeleteAgent
+          agentId={agentIdToBeDeleted}
+          open={isDeleteAgentOpen}
+          onClose={handleDeleteAgentClose}
+        />
+      )}
     </div>
   )
 }

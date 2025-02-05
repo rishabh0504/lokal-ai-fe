@@ -1,4 +1,5 @@
-import { Agent } from '@/app/utils/types'
+import { Agent } from '@/app/(routes)/agent/types/type'
+import { API_CONFIG } from '@/app/utils/config'
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface AgentState {
@@ -14,7 +15,9 @@ const initialState: AgentState = {
 }
 
 export const fetchAgents = createAsyncThunk('agents/fetchAgents', async () => {
-  const response = await fetch('http://localhost:3001/agents')
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.agents.get}`,
+  )
   if (!response.ok) {
     throw new Error('Failed to fetch LLMs')
   }

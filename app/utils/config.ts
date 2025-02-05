@@ -1,5 +1,5 @@
 import { Brain, LucideIcon, SquareTerminal } from 'lucide-react'
-import Chat from '../components/chat'
+import Chat from '../(routes)/chat/components/chat'
 import { SidebarType } from './types'
 export type IconComponent = LucideIcon
 
@@ -88,5 +88,14 @@ export const DASHBOARD_STATS = {
       { name: 'Nov', Revenue: 3490 },
       { name: 'Dec', Revenue: 3490 },
     ],
+  },
+}
+
+export const API_CONFIG = {
+  llms: {
+    get: 'llm-models',
+  },
+  agents: {
+    get: 'agents',
   },
 }

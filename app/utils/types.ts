@@ -2,22 +2,22 @@ import { LucideIcon } from 'lucide-react'
 
 export type IconComponent = LucideIcon
 
-interface ModelDetails {
-  parent_model: string
-  format: string
-  family: string
-  families: string[]
-  parameter_size: string
-  quantization_level: string
-}
-export interface LLMModel {
-  name: string
-  model: string
-  modified_at: Date
-  size: number
-  digest: string
-  details: ModelDetails
-}
+// interface ModelDetails {
+//   parent_model: string
+//   format: string
+//   family: string
+//   families: string[]
+//   parameter_size: string
+//   quantization_level: string
+// }
+// export interface LLMModel {
+//   name: string
+//   model: string
+//   modified_at: Date
+//   size: number
+//   digest: string
+//   details: ModelDetails
+// }
 
 export type Items = {
   name: string
@@ -51,11 +51,14 @@ export interface SubNavItem {
   component?: React.ReactNode
 }
 
-export type Agent = {
-  id: string
+// export type Agent = {
+//   id: string
+//   agentName: string
+//   created_at: string
+//   updated_at: string
+//   model: string
+// }
+export type AgentDto = {
   agentName: string
-  created_at: string
-  updated_at: string
-  providerName: string
   model: string
 }

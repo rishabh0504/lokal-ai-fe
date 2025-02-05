@@ -1,4 +1,5 @@
-import { LLMModel } from '@/app/utils/types'
+import { LLMModel } from '@/app/(routes)/llm/types/type'
+import { API_CONFIG } from '@/app/utils/config'
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface LLMState {
@@ -14,7 +15,9 @@ const initialState: LLMState = {
 }
 
 export const fetchLLMs = createAsyncThunk('llms/fetchLLMs', async () => {
-  const response = await fetch('http://localhost:3001/ai-services/models')
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.llms.get}`,
+  )
   if (!response.ok) {
     throw new Error('Failed to fetch LLMs')
   }

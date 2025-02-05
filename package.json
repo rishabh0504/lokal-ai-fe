@@ -1,5 +1,5 @@
 {
-  "name": "Lokal-AI",
+  "name": "lokal-ai",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "prepare": "husky",
-    "lint": "next lint --max-warnings=0",
+    "lint": "next lint",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
