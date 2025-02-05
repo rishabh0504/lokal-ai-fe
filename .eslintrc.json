@@ -49,6 +49,7 @@
         "tabWidth": 2,
         "bracketSpacing": true
       }
-    ]
+    ],
+    "@typescript-eslint/no-explicit-any": "error"
   }
 }
