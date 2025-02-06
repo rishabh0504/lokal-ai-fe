@@ -234,6 +234,22 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
     }
   }
 
+  const { setValue, watch } = form
+  const llmModelId = watch('llmModelId')
+  useEffect(() => {
+    if (llmModelId) {
+      const foundLLMModel = llms.find((llm) => llm.id === llmModelId)
+      if (foundLLMModel) {
+        setValue('temperature', foundLLMModel.temperatureDefault)
+        setValue('top_p', foundLLMModel.top_pDefault)
+        setValue('top_k', foundLLMModel.top_kDefault)
+        setValue('max_tokens', foundLLMModel.max_tokensDefault)
+        setValue('presence_penalty', foundLLMModel.presence_penaltyDefault)
+        setValue('frequency_penalty', foundLLMModel.frequency_penaltyDefault)
+        setValue('repeat_penalty', foundLLMModel.repeat_penaltyDefault)
+      }
+    }
+  }, [llmModelId, setValue])
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[800px]">

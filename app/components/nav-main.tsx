@@ -13,6 +13,7 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
 import { ChevronRight } from 'lucide-react'
+import { CurrentAgent } from '../(routes)/agent/components/current-agent'
 import { SIDEBAR_CONFIG } from '../utils/config'
 
 export function NavMain() {
@@ -20,6 +21,7 @@ export function NavMain() {
 
   return (
     <SidebarGroup>
+      <CurrentAgent />
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
         {sidebarConfigItem.navItems.map((item) =>

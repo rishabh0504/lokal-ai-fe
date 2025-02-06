@@ -6,12 +6,14 @@ interface AgentState {
   items: Agent[]
   loading: boolean
   error: string | null
+  activeAgent: Partial<Agent> | null
 }
 
 const initialState: AgentState = {
   items: [],
   loading: false,
   error: null,
+  activeAgent: null,
 }
 
 export const fetchAgents = createAsyncThunk('agents/fetchAgents', async () => {
@@ -28,7 +30,11 @@ export const fetchAgents = createAsyncThunk('agents/fetchAgents', async () => {
 export const agentsSlice = createSlice({
   name: 'agents',
   initialState,
-  reducers: {},
+  reducers: {
+    setActiveAgent: (state, action: PayloadAction<Agent | null>) => {
+      state.activeAgent = action.payload
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchAgents.pending, (state) => {
@@ -45,5 +51,7 @@ export const agentsSlice = createSlice({
       })
   },
 })
+
+export const { setActiveAgent } = agentsSlice.actions
 
 export default agentsSlice.reducer

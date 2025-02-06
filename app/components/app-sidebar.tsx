@@ -27,7 +27,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [dispatch])
   return (
     <>
-      <Sidebar collapsible="icon" {...props} className="px-2">
+      <Sidebar collapsible="icon" {...props} className="p-2">
         <Link href="/" passHref>
           <SidebarHeader>
             <TeamSwitcher teams={SIDEBAR_CONFIG.teams} />
