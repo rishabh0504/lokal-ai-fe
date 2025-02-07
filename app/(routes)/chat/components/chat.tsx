@@ -1,8 +1,8 @@
+import AgentInteration from '@/app/(routes)/agent/components/agent-interation'
+import { Agent } from '@/app/(routes)/agent/types/type'
+import ChatMessage from '@/app/(routes)/chat/components/message'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { FC } from 'react'
-import AgentInteration from '../../agent/components/agent-interation'
-import { Agent } from '../../agent/types/type'
-import ChatMessage from './message'
 
 interface ChatProps {
   messages: {

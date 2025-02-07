@@ -1,5 +1,6 @@
 'use client'
 
+import { LLMModel } from '@/app/(routes)/llm/types/type'
 import useFetch from '@/app/hooks/useFetch'
 import { fetchLLMs } from '@/app/store/slices/llm.reducer'
 import { AppDispatch } from '@/app/store/store'
@@ -16,7 +17,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from '@/hooks/use-toast'
 import { useDispatch } from 'react-redux'
-import { LLMModel } from '../types/type'
 
 interface DeleteLLMModelProps {
   llmModelId: string | undefined

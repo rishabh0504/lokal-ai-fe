@@ -15,6 +15,9 @@ import {
 import { ChevronDown, MoreHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { LLMModel } from '@/app/(routes)/llm/types/type'
+import CreateLLMModel from '@/app/(routes)/llm/components/create-llm-model'
+import DeleteLLMModel from '@/app/(routes)/llm/components/delete-llm-model'
 import { RootState } from '@/app/store/store'
 import { formatDateForTable } from '@/app/utils/util-service'
 import { Button } from '@/components/ui/button'
@@ -40,9 +43,6 @@ import {
 } from '@/components/ui/table'
 import type { NextPage } from 'next/types'
 import { useSelector } from 'react-redux'
-import CreateLLMModel from './components/create-llm-model'
-import DeleteLLMModel from './components/delete-llm-model'
-import { LLMModel } from './types/type'
 
 const LLMModelPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])

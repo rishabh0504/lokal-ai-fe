@@ -2,6 +2,7 @@
 
 import { useDispatch, useSelector } from 'react-redux'
 
+import { Agent } from '@/app/(routes)/agent/types/type'
 import { setActiveAgent } from '@/app/store/slices/agent.reducer'
 import { AppDispatch, RootState } from '@/app/store/store'
 import {
@@ -12,7 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useEffect, useState } from 'react'
-import { Agent } from '../types/type'
 
 export function CurrentAgent() {
   const dispatch = useDispatch<AppDispatch>()

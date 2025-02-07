@@ -1,4 +1,5 @@
 'use client'
+import { Agent } from '@/app/(routes)/agent/types/type'
 import useFetch from '@/app/hooks/useFetch'
 import { fetchAgents } from '@/app/store/slices/agent.reducer'
 import { AppDispatch } from '@/app/store/store'
@@ -15,7 +16,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from '@/hooks/use-toast'
 import { useDispatch } from 'react-redux'
-import { Agent } from '../types/type'
 
 interface DeleteAgentProps {
   agentId: string | undefined

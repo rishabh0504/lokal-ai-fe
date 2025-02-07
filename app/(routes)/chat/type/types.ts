@@ -1,4 +1,4 @@
-import { Agent } from '../../agent/types/type'
+import { Agent } from '@/app/(routes)/agent/types/type'
 
 export interface Session {
   id: string

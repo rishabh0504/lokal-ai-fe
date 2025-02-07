@@ -1,5 +1,5 @@
+import Chat from '@/app/(routes)/chat/components/chat'
 import { Brain, LucideIcon, SquareTerminal } from 'lucide-react'
-import Chat from '../(routes)/chat/components/chat'
 import { SidebarType } from './types'
 export type IconComponent = LucideIcon
 

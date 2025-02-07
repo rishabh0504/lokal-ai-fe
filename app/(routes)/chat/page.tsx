@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import { toast } from '@/hooks/use-toast'
 import { useUser } from '@clerk/nextjs'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { Agent } from '../agent/types/type'
-import Chat from './components/chat'
-import { Session } from './type/types'
-import { toast } from '@/hooks/use-toast'
+import { Agent } from '@/app/(routes)/agent/types/type'
+import Chat from '@/app/(routes)/chat/components/chat'
+import { Session } from '@/app/(routes)/chat/type/types'
 
 type Message = {
   sender: string

@@ -1,5 +1,6 @@
 'use client'
 
+import { LLMModel } from '@/app/(routes)/llm/types/type'
 import useFetch from '@/app/hooks/useFetch'
 import { fetchLLMs } from '@/app/store/slices/llm.reducer'
 import { AppDispatch } from '@/app/store/store'
@@ -30,7 +31,6 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import * as z from 'zod'
-import { LLMModel } from '../types/type'
 
 const formSchema = z.object({
   name: z
