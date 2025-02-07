@@ -1,5 +1,6 @@
 'use client'
 
+import { LLMModel } from '@/app/(routes)/llm/types/type'
 import useFetch from '@/app/hooks/useFetch'
 import { fetchLLMs } from '@/app/store/slices/llm.reducer'
 import { AppDispatch } from '@/app/store/store'
@@ -16,7 +17,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from '@/hooks/use-toast'
 import { useDispatch } from 'react-redux'
-import { LLMModel } from '../types/type'
 
 interface DeleteLLMModelProps {
   llmModelId: string | undefined
@@ -27,7 +27,7 @@ interface DeleteLLMModelProps {
 const DeleteLLMModel = ({ llmModelId, open, onClose }: DeleteLLMModelProps) => {
   const dispatch = useDispatch<AppDispatch>()
 
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.llms.get}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`
   const deleteLLMModelURL = llmModelId ? `${baseUrl}/${llmModelId}` : baseUrl
   const { loading, del: deleteLLMModel } = useFetch<LLMModel>(deleteLLMModelURL)
 

@@ -1,4 +1,4 @@
-import { LLMModel } from '../../llm/types/type'
+import { LLMModel } from '@/app/(routes)/llm/types/type'
 
 export type Agent = {
   id: string

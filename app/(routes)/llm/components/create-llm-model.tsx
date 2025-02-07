@@ -1,5 +1,6 @@
 'use client'
 
+import { LLMModel } from '@/app/(routes)/llm/types/type'
 import useFetch from '@/app/hooks/useFetch'
 import { fetchLLMs } from '@/app/store/slices/llm.reducer'
 import { AppDispatch } from '@/app/store/store'
@@ -30,7 +31,6 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import * as z from 'zod'
-import { LLMModel } from '../types/type'
 
 const formSchema = z.object({
   name: z
@@ -90,7 +90,7 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
 
   const dispatch = useDispatch<AppDispatch>()
 
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.llms.get}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`
   const llmModelUrl = llmModelId ? `${baseUrl}/${llmModelId}` : baseUrl
 
   const { loading, get, post, put } = useFetch<LLMModel>(baseUrl)

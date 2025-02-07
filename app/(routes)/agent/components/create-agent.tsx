@@ -1,5 +1,7 @@
 'use client'
 
+import { Agent } from '@/app/(routes)/agent/types/type'
+import { LLMModel } from '@/app/(routes)/llm/types/type'
 import useFetch from '@/app/hooks/useFetch'
 import { fetchAgents } from '@/app/store/slices/agent.reducer'
 import { AppDispatch, RootState } from '@/app/store/store'
@@ -36,8 +38,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import * as z from 'zod'
-import { LLMModel } from '../../llm/types/type'
-import { Agent } from '../types/type'
 
 interface CreateAgentProps {
   agentId?: string
@@ -53,7 +53,7 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
   const llms = useSelector((state: RootState) => state.llms.items) || []
   const dispatch = useDispatch<AppDispatch>()
 
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.agents.get}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.get}`
   const agentUrl = agentId ? `${baseUrl}/${agentId}` : baseUrl
 
   const { loading, get, post, put } = useFetch<Agent>(baseUrl)

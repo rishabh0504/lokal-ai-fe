@@ -15,6 +15,8 @@ import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import CreateAgent from '@/app/(routes)/agent/components/create-agent'
+import DeleteAgent from '@/app/(routes)/agent/components/delete-agent'
+import { Agent } from '@/app/(routes)/agent/types/type'
 import { RootState } from '@/app/store/store'
 import { formatDateForTable } from '@/app/utils/util-service'
 import { Button } from '@/components/ui/button'
@@ -40,8 +42,6 @@ import {
 } from '@/components/ui/table'
 import type { NextPage } from 'next/types'
 import { useSelector } from 'react-redux'
-import DeleteAgent from './components/delete-agent'
-import { Agent } from './types/type'
 
 const AgentPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])

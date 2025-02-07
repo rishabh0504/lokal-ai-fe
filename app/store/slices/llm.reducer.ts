@@ -16,7 +16,7 @@ const initialState: LLMState = {
 
 export const fetchLLMs = createAsyncThunk('llms/fetchLLMs', async () => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.llms.get}`,
+    `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`,
   )
   if (!response.ok) {
     throw new Error('Failed to fetch LLMs')
