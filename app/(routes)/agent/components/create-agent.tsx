@@ -46,23 +46,18 @@ interface CreateAgentProps {
 }
 
 const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
-  // Component State
   const [isUpdate, setIsUpdate] = useState(false)
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false)
   const [selectedLLM, setSelectedLLM] = useState<LLMModel | null>(null)
 
-  // Redux State and Dispatch
   const llms = useSelector((state: RootState) => state.llms.items) || []
   const dispatch = useDispatch<AppDispatch>()
 
-  // URLs
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.agents.get}`
   const agentUrl = agentId ? `${baseUrl}/${agentId}` : baseUrl
 
-  // useFetch Hook
   const { loading, get, post, put } = useFetch<Agent>(baseUrl)
 
-  // Dynamic Zod schema
   const formSchema = useMemo(() => {
     return z.object({
       name: z
@@ -101,7 +96,6 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
     })
   }, [selectedLLM])
 
-  // Form Hook
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -118,12 +112,10 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
     mode: 'onChange',
   })
 
-  // Memoized Model Options
   const modelOptions = useMemo(() => {
-    return llms.map((each: LLMModel) => ({ label: each.name, value: each.id })) // Changed label and value to new model schema
+    return llms.map((each: LLMModel) => ({ label: each.name, value: each.id }))
   }, [llms])
 
-  // useEffect Hook to Fetch Agent Data for Update
   useEffect(() => {
     const fetchAgent = async () => {
       if (agentId) {
@@ -135,7 +127,7 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
             form.setValue(
               'temperature',
               fetchedAgent.temperature !== undefined ? Number(fetchedAgent.temperature) : 0,
-            ) // Use default if undefined
+            )
             form.setValue(
               'top_p',
               fetchedAgent.top_p !== undefined ? Number(fetchedAgent.top_p) : 0,
@@ -180,7 +172,6 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
     fetchAgent()
   }, [agentId, get, form, agentUrl])
 
-  // useEffect to update selectedLLM when llmModelId changes
   useEffect(() => {
     if (form.watch('llmModelId')) {
       const foundLLM = llms.find((llm) => llm.id === form.watch('llmModelId'))
@@ -188,7 +179,6 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
     }
   }, [llms, form])
 
-  // Submit Handler Function
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const agentData: Partial<Agent> = {
@@ -234,6 +224,22 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
     }
   }
 
+  const { setValue, watch } = form
+  const llmModelId = watch('llmModelId')
+  useEffect(() => {
+    if (llmModelId) {
+      const foundLLMModel = llms.find((llm) => llm.id === llmModelId)
+      if (foundLLMModel) {
+        setValue('temperature', foundLLMModel.temperatureDefault)
+        setValue('top_p', foundLLMModel.top_pDefault)
+        setValue('top_k', foundLLMModel.top_kDefault)
+        setValue('max_tokens', foundLLMModel.max_tokensDefault)
+        setValue('presence_penalty', foundLLMModel.presence_penaltyDefault)
+        setValue('frequency_penalty', foundLLMModel.frequency_penaltyDefault)
+        setValue('repeat_penalty', foundLLMModel.repeat_penaltyDefault)
+      }
+    }
+  }, [llmModelId, setValue])
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[800px]">

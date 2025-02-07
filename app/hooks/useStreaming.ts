@@ -1,4 +1,3 @@
-// src/hooks/useStreaming.tsx
 import { useState, useCallback, useRef } from 'react'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
@@ -32,7 +31,7 @@ const useStreaming = <T>(): {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<Error | null>(null)
-  const [url, setUrl] = useState<string>('') //Set the default value of url to an empty string.
+  const [url, setUrl] = useState<string>('')
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const fetchData = useCallback(
@@ -94,7 +93,6 @@ const useStreaming = <T>(): {
           }
         } else {
           if (String(e) !== 'AbortError') {
-            // check to ensure that we don't throw an error on an abort.
             setError(new Error(String(e)))
           }
         }

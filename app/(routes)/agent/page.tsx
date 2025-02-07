@@ -203,8 +203,8 @@ const AgentPage: NextPage = () => {
           <div className="flex items-center py-4">
             <Input
               placeholder="Filter agent..."
-              value={(table.getColumn('agentName')?.getFilterValue() as string) ?? ''}
-              onChange={(event) => table.getColumn('agentName')?.setFilterValue(event.target.value)}
+              value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+              onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
               className="max-w-sm"
             />
             <DropdownMenu>
@@ -296,7 +296,6 @@ const AgentPage: NextPage = () => {
           </div>
         </div>
       </div>
-      {/* Conditionally render CreateAgent dialog */}
       {isCreateAgentOpen && (
         <CreateAgent
           agentId={agentIdToBeEdited}

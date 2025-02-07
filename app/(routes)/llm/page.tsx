@@ -49,7 +49,7 @@ const LLMModelPage: NextPage = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
-  const llmModels = useSelector((state: RootState) => state.llms.items) || [] // Assuming you have a "llms" slice in your store
+  const llmModels = useSelector((state: RootState) => state.llms.items) || []
 
   const [llmModelIdToBeEdited, setLLMModelIdToBeEdited] = useState<string | undefined>(undefined)
   const [isCreateLLMModelOpen, setIsCreateLLMModelOpen] = useState(false)
