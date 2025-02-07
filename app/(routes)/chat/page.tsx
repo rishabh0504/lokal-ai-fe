@@ -5,7 +5,14 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useState } from 'react'
 import Chat from './components/chat'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/app/store/store'
+import { Agent } from '../agent/types/type'
 export default function ChatPage() {
+  const activeAgent: Partial<Agent> | null = useSelector(
+    (state: RootState) => state.agents.activeAgent,
+  )
+
   const [userMessage, setUserMessage] = useState('')
   const [messages, setMessages] = useState([
     { sender: 'user', content: 'Hello everyone!' },
@@ -30,7 +37,7 @@ export default function ChatPage() {
           </Label>
         </div>
         <Separator />
-        <Chat messages={messages} />
+        <Chat messages={messages} activeAgent={activeAgent} />
         <footer className="flex w-full items-center space-x-2 p-2">
           <Textarea
             className="flex-1 resize-none"
