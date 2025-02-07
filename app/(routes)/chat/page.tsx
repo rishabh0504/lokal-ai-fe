@@ -1,36 +1,73 @@
 'use client'
+import useFetch from '@/app/hooks/useFetch'
+import { RootState } from '@/app/store/store'
+import { API_CONFIG } from '@/app/utils/config'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import { useUser } from '@clerk/nextjs'
 import { useState } from 'react'
-import Chat from './components/chat'
 import { useSelector } from 'react-redux'
-import { RootState } from '@/app/store/store'
 import { Agent } from '../agent/types/type'
+import Chat from './components/chat'
+import { Session } from './type/types'
+import { toast } from '@/hooks/use-toast'
 
 type Message = {
   sender: string
   content: string
 }
 export default function ChatPage() {
+  const { user } = useUser()
+
   const activeAgent: Partial<Agent> | null = useSelector(
     (state: RootState) => state.agents.activeAgent,
   )
-
   const [userMessage, setUserMessage] = useState('')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [messages, setMessages] = useState<Message[]>([])
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.chat.session}`
 
-  const sendMessage = () => {
+  const { post: createSession } = useFetch<Partial<Session>>(baseUrl)
+
+  const createChatSession = async () => {
+    try {
+      const payload: Partial<Session> = {
+        agentId: activeAgent?.id,
+        userId: user?.id,
+        title: 'default',
+      }
+      const response = await createSession<Partial<Session>>(payload, baseUrl)
+      if (!response) {
+        throw new Error(`Failed to create session.`)
+      }
+    } catch (error: unknown) {
+      let errorMessage = `Failed to initiate chat. Please try again.`
+
+      if (error instanceof Error) {
+        errorMessage = error.message
+      } else {
+        console.error('An unexpected error occurred:', error)
+        errorMessage = 'An unexpected error occurred. Please check the console for details.'
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: errorMessage,
+      })
+    }
+  }
+  const sendMessage = async (message: string) => {
     if (userMessage.trim() !== '') {
-      setMessages([
-        ...messages,
-        { sender: 'me', content: "Hello! It's going well, thanks for asking." },
-        { sender: 'user', content: 'Hello everyone!' },
-        { sender: 'me', content: 'What about you?' },
-        { sender: 'user', content: "How's it going?" },
-      ])
       setUserMessage('')
+      if (messages.length > 0) {
+        // Continue Chat
+      } else {
+        // Create Chat Session
+        createChatSession()
+        console.log(message)
+      }
     }
   }
 
@@ -53,7 +90,7 @@ export default function ChatPage() {
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
-                sendMessage()
+                sendMessage(userMessage)
               }
             }}
             disabled={activeAgent ? false : true}
@@ -61,7 +98,9 @@ export default function ChatPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={sendMessage}
+            onClick={() => {
+              sendMessage(userMessage)
+            }}
             disabled={activeAgent ? false : true}
           >
             Send

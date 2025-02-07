@@ -98,4 +98,7 @@ export const API_CONFIG = {
   agents: {
     get: 'agents',
   },
+  chat: {
+    session: 'sessions',
+  },
 }
