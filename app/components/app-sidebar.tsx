@@ -1,7 +1,5 @@
 'use client'
 
-import * as React from 'react'
-
 import {
   Sidebar,
   SidebarContent,
@@ -18,10 +16,11 @@ import { SIDEBAR_CONFIG } from '../utils/config'
 import { NavMain } from './nav-main'
 import { NavUser } from './nav-user'
 import { TeamSwitcher } from './team-switcher'
+import { ComponentProps, useEffect } from 'react'
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const dispatch = useDispatch<AppDispatch>()
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(fetchLLMs())
     dispatch(fetchAgents())
   }, [dispatch])

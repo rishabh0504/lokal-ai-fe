@@ -13,9 +13,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { toast } from '@/hooks/use-toast'
 import { useDispatch } from 'react-redux'
 import { Agent } from '../types/type'
-import { toast } from '@/hooks/use-toast'
 
 interface DeleteAgentProps {
   agentId: string | undefined

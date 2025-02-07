@@ -296,7 +296,6 @@ const AgentPage: NextPage = () => {
           </div>
         </div>
       </div>
-      {/* Conditionally render CreateAgent dialog */}
       {isCreateAgentOpen && (
         <CreateAgent
           agentId={agentIdToBeEdited}

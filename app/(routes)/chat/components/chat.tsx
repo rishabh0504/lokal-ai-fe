@@ -1,5 +1,6 @@
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ChatMessage from './message'
+import { FC } from 'react'
 
 interface ChatProps {
   messages: {
@@ -8,7 +9,7 @@ interface ChatProps {
   }[]
 }
 
-const Chat: React.FC<ChatProps> = (props: ChatProps) => {
+const Chat: FC<ChatProps> = (props: ChatProps) => {
   const { messages } = props ?? []
   return (
     <>

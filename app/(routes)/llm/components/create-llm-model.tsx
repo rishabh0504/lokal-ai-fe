@@ -1,7 +1,6 @@
 'use client'
 
 import useFetch from '@/app/hooks/useFetch'
-
 import { fetchLLMs } from '@/app/store/slices/llm.reducer'
 import { AppDispatch } from '@/app/store/store'
 import { API_CONFIG } from '@/app/utils/config'
@@ -86,21 +85,16 @@ interface CreateLLMModelProps {
 }
 
 const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
-  // Component State
   const [isUpdate, setIsUpdate] = useState(false)
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false)
 
-  // Redux State and Dispatch
   const dispatch = useDispatch<AppDispatch>()
 
-  // URLs
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.llms.get}`
   const llmModelUrl = llmModelId ? `${baseUrl}/${llmModelId}` : baseUrl
 
-  // useFetch Hook
-  const { loading, get, post, put } = useFetch<LLMModel>(baseUrl) // Use base URL, we'll specify full URL in calls
+  const { loading, get, post, put } = useFetch<LLMModel>(baseUrl)
 
-  // Form Hook
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -134,7 +128,6 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
     mode: 'onChange',
   })
 
-  // useEffect Hook to Fetch LLMModel Data for Update (if llmModelId exists)
   useEffect(() => {
     const fetchLLMModel = async () => {
       if (llmModelId) {

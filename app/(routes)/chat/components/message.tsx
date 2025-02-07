@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
-import React from 'react'
+import { FC } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
@@ -12,7 +12,7 @@ interface ChatMessageProps {
   avatarSrcOther?: string
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({
+const ChatMessage: FC<ChatMessageProps> = ({
   sender,
   content,
   avatarSrcUser = '/icons/user.png',
@@ -31,11 +31,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
           <AvatarFallback>U</AvatarFallback>
         </Avatar>
       )}
-      <div
-        className={cn(
-          'p-2 rounded-lg text-sm my-1 bg-muted dark:bg-muted-foreground/10 ', // Added max-w-[80%]
-        )}
-      >
+      <div className={cn('p-2 rounded-lg text-sm my-1 bg-muted dark:bg-muted-foreground/10 ')}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw]}

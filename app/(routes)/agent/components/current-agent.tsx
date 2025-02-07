@@ -42,7 +42,7 @@ export function CurrentAgent() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between text-sm" // Added text-sm class directly to Button
+          className="w-[200px] justify-between text-sm"
         >
           {value ? agents.find((agent) => agent.id === value)?.name : 'Select Agent'}
           <ChevronsUpDown className="opacity-50" />
