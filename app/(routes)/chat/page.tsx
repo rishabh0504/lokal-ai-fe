@@ -8,22 +8,28 @@ import Chat from './components/chat'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/app/store/store'
 import { Agent } from '../agent/types/type'
+
+type Message = {
+  sender: string
+  content: string
+}
 export default function ChatPage() {
   const activeAgent: Partial<Agent> | null = useSelector(
     (state: RootState) => state.agents.activeAgent,
   )
 
   const [userMessage, setUserMessage] = useState('')
-  const [messages, setMessages] = useState([
-    { sender: 'user', content: 'Hello everyone!' },
-    { sender: 'user', content: "How's it going?" },
-    { sender: 'me', content: "Hello! It's going well, thanks for asking." },
-    { sender: 'me', content: 'What about you?' },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
 
   const sendMessage = () => {
     if (userMessage.trim() !== '') {
-      setMessages([...messages, { sender: 'me', content: userMessage }])
+      setMessages([
+        ...messages,
+        { sender: 'me', content: "Hello! It's going well, thanks for asking." },
+        { sender: 'user', content: 'Hello everyone!' },
+        { sender: 'me', content: 'What about you?' },
+        { sender: 'user', content: "How's it going?" },
+      ])
       setUserMessage('')
     }
   }
@@ -50,8 +56,14 @@ export default function ChatPage() {
                 sendMessage()
               }
             }}
+            disabled={activeAgent ? false : true}
           />
-          <Button variant="outline" size="sm" onClick={sendMessage}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={sendMessage}
+            disabled={activeAgent ? false : true}
+          >
             Send
           </Button>
         </footer>
