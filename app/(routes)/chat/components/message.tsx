@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm'
 interface ChatMessageProps {
   sender: string
   content: string
+  userIdentifier?: string
   avatarSrcUser?: string
   avatarSrcOther?: string
 }
@@ -15,17 +16,20 @@ interface ChatMessageProps {
 const ChatMessage: FC<ChatMessageProps> = ({
   sender,
   content,
+  userIdentifier,
   avatarSrcUser = '/icons/user.png',
   avatarSrcOther = '/icons/bot.png',
 }) => {
+  const isCurrentUser = sender === userIdentifier // Check if the message is from the current user
+
   return (
     <div
       className={cn(
         'flex items-start space-x-2 my-1',
-        sender === 'me' ? 'justify-end' : 'justify-start',
+        isCurrentUser ? 'justify-end' : 'justify-start',
       )}
     >
-      {sender !== 'me' && (
+      {!isCurrentUser && (
         <Avatar>
           <AvatarImage src={avatarSrcOther} alt="Other Avatar" />
           <AvatarFallback>U</AvatarFallback>
@@ -40,7 +44,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
           {content}
         </ReactMarkdown>
       </div>
-      {sender === 'me' && (
+      {isCurrentUser && (
         <Avatar>
           <AvatarImage src={avatarSrcUser} alt="User Avatar" sizes="sm" />
           <AvatarFallback>Me</AvatarFallback>

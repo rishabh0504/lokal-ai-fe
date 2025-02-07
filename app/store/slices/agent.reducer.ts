@@ -18,7 +18,7 @@ const initialState: AgentState = {
 
 export const fetchAgents = createAsyncThunk('agents/fetchAgents', async () => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.agents.get}`,
+    `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.get}`,
   )
   if (!response.ok) {
     throw new Error('Failed to fetch LLMs')

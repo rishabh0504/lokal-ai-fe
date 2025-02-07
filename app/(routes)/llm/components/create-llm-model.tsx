@@ -90,7 +90,7 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
 
   const dispatch = useDispatch<AppDispatch>()
 
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}${API_CONFIG.llms.get}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`
   const llmModelUrl = llmModelId ? `${baseUrl}/${llmModelId}` : baseUrl
 
   const { loading, get, post, put } = useFetch<LLMModel>(baseUrl)
