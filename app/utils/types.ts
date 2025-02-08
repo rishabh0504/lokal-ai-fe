@@ -44,3 +44,7 @@ export type AgentDto = {
   agentName: string
   model: string
 }
+
+export type StringKeyStringValueType = {
+  [key: string]: string
+}

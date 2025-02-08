@@ -14,4 +14,6 @@ export type Agent = {
   repeat_penalty?: number
   created_at: string
   updated_at: string
+  description: string
+  prompt: string
 }

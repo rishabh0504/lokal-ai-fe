@@ -76,6 +76,10 @@ const formSchema = z.object({
   repeat_penaltyDefault: z.number(),
 
   stop_sequences: z.string(),
+  defaultPrompt: z
+    .string()
+    .min(100, { message: 'Default prompt must be 100 characters' })
+    .max(200, { message: 'Default prompt cannot exceed 200 characters.' }),
 })
 
 interface CreateLLMModelProps {
@@ -124,6 +128,7 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
       repeat_penaltyMax: 0,
       repeat_penaltyDefault: 0,
       stop_sequences: '',
+      defaultPrompt: '',
     },
     mode: 'onChange',
   })
@@ -167,6 +172,7 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
             form.setValue('repeat_penaltyMin', fetchedLLMModel.repeat_penaltyMin)
             form.setValue('repeat_penaltyMax', fetchedLLMModel.repeat_penaltyMax)
             form.setValue('repeat_penaltyDefault', fetchedLLMModel.repeat_penaltyDefault)
+            form.setValue('defaultPrompt', fetchedLLMModel.defaultPrompt)
 
             form.setValue(
               'stop_sequences',
@@ -238,6 +244,7 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
         repeat_penaltyMax: values.repeat_penaltyMax,
         repeat_penaltyDefault: values.repeat_penaltyDefault,
         stop_sequences: stopSequencesArray,
+        defaultPrompt: values.defaultPrompt,
       }
 
       const apiCall = isUpdate ? put : post
@@ -354,6 +361,24 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
                         <Textarea
                           placeholder="Provide a short description"
                           className="resize-none"
+                          {...field}
+                          disabled={loading || !initialValuesLoaded}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="defaultPrompt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Default System Prompt</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Provide a short description"
+                          className="resize-none w-full"
                           {...field}
                           disabled={loading || !initialValuesLoaded}
                         />
