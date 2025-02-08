@@ -1,5 +1,7 @@
 'use client'
+import AgentInteration from '@/app/(routes)/agent/components/agent-interation'
 import { Agent } from '@/app/(routes)/agent/types/type'
+import ChatMessage from '@/app/(routes)/chat/components/message'
 import { Session } from '@/app/(routes)/chat/type/types'
 import useFetch from '@/app/hooks/useFetch'
 import { RootState } from '@/app/store/store'
@@ -13,8 +15,6 @@ import { toast } from '@/hooks/use-toast'
 import { useUser } from '@clerk/nextjs'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-import AgentInteration from '../agent/components/agent-interation'
-import ChatMessage from './components/message'
 
 type Message = {
   sender: string
@@ -96,7 +96,14 @@ export default function ChatPage() {
       }
       //When sesison is created, get the ID and update it.
       setSessionId(response.id ?? null) //Set session ID to start SSE
-      //setMessages([]) // Do not Clear all existing messages, a new session started
+
+      //Set all to use SSE and remove double-check, check only for sessionId.
+      if (response.id) {
+        //Set SSE and Messages after the ChatSession has been set.
+        setSessionId(response.id)
+        initializeSSE(response.id)
+        setMessages([]) // Set messages
+      }
       return response.id
     } catch (error: unknown) {
       let errorMessage = `Failed to initiate chat. Please try again.`
@@ -126,14 +133,12 @@ export default function ChatPage() {
         // Create Chat Session if there is no seesion ID
         const newSessionId = await createChatSession()
 
-        if (newSessionId) {
-          currentSessionId = newSessionId
-          setSessionId(newSessionId)
-          setMessages([])
-        } else {
+        if (!newSessionId) {
           // If creating a new chat session fails, early return
           console.error('Failed to create chat session')
           return
+        } else {
+          currentSessionId = newSessionId
         }
       }
 

@@ -6,6 +6,7 @@ export type LLMModel = {
   modelName: string
   version: string
   description: string
+  defaultPrompt: string
 
   temperatureMin: number
   temperatureMax: number

@@ -2,10 +2,13 @@
 
 import { Agent } from '@/app/(routes)/agent/types/type'
 import { LLMModel } from '@/app/(routes)/llm/types/type'
+import InfoHoverCard from '@/app/components/info-card-hover'
 import useFetch from '@/app/hooks/useFetch'
 import { fetchAgents } from '@/app/store/slices/agent.reducer'
 import { AppDispatch, RootState } from '@/app/store/store'
+import { LLM_AGENT_PARAMETERS } from '@/app/utils/common.constant'
 import { API_CONFIG } from '@/app/utils/config'
+import { StringKeyStringValueType } from '@/app/utils/types'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -32,6 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useState } from 'react'
@@ -45,6 +49,32 @@ interface CreateAgentProps {
   onClose: () => void
 }
 
+const getUpdatedParameters = (llmModel: Partial<LLMModel>): StringKeyStringValueType => {
+  const updatedValue: StringKeyStringValueType = {}
+  Object.keys(LLM_AGENT_PARAMETERS).forEach((key: string) => {
+    let information: string = LLM_AGENT_PARAMETERS[key]
+    information = information.replace(
+      `{${key}Min}`,
+      llmModel[`${key}Min` as keyof LLMModel] !== undefined
+        ? String(llmModel[`${key}Min` as keyof LLMModel])
+        : '',
+    )
+    information = information.replace(
+      `{${key}Max}`,
+      llmModel[`${key}Max` as keyof LLMModel] !== undefined
+        ? String(llmModel[`${key}Max` as keyof LLMModel])
+        : '',
+    )
+    information = information.replace(
+      `{${key}Default}`,
+      llmModel[`${key}Default` as keyof LLMModel] !== undefined
+        ? String(llmModel[`${key}Default` as keyof LLMModel])
+        : '',
+    )
+    updatedValue[key] = information
+  })
+  return updatedValue
+}
 const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
   const [isUpdate, setIsUpdate] = useState(false)
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false)
@@ -93,6 +123,15 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
         .number()
         .min(selectedLLM?.repeat_penaltyMin || 1)
         .max(selectedLLM?.repeat_penaltyMax || 2),
+      description: z
+        .string()
+        .min(10, { message: 'Desciption must be 10 characters' })
+        .max(100, { message: 'Description cannot exceed 100 characters.' }),
+
+      prompt: z
+        .string()
+        .min(100, { message: 'System Prompt must be 100 characters' })
+        .max(200, { message: 'System Prompt cannot exceed 200 characters.' }),
     })
   }, [selectedLLM])
 
@@ -101,6 +140,7 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
     defaultValues: {
       name: '',
       llmModelId: '',
+      description: '',
       temperature: 0,
       top_p: 0,
       top_k: 0,
@@ -108,6 +148,7 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
       presence_penalty: 0,
       frequency_penalty: 0,
       repeat_penalty: 0,
+      prompt: '',
     },
     mode: 'onChange',
   })
@@ -156,6 +197,9 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
               'repeat_penalty',
               fetchedAgent.repeat_penalty !== undefined ? Number(fetchedAgent.repeat_penalty) : 0,
             )
+            form.setValue('description', fetchedAgent.description)
+            form.setValue('prompt', fetchedAgent.prompt)
+
             setIsUpdate(true)
             setInitialValuesLoaded(true)
           } else {
@@ -191,6 +235,8 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
         presence_penalty: values.presence_penalty,
         frequency_penalty: values.frequency_penalty,
         repeat_penalty: values.repeat_penalty,
+        description: values.description,
+        prompt: values.prompt,
       }
 
       const apiCall = isUpdate ? put : post
@@ -237,12 +283,18 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
         setValue('presence_penalty', foundLLMModel.presence_penaltyDefault)
         setValue('frequency_penalty', foundLLMModel.frequency_penaltyDefault)
         setValue('repeat_penalty', foundLLMModel.repeat_penaltyDefault)
+        setValue('description', foundLLMModel.description)
+        setValue('prompt', foundLLMModel.defaultPrompt)
       }
     }
   }, [llmModelId, setValue])
+
+  const foundLLMModel: Partial<LLMModel> = llms.find((llm) => llm.id === llmModelId) || {}
+
+  const UPDATED_LLM_AGENT_PARAMETERS: StringKeyStringValueType = getUpdatedParameters(foundLLMModel)
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="sm:max-w-[850px]">
         <DialogHeader>
           <DialogTitle>{agentId ? 'Update Agent' : 'Create Agent'}</DialogTitle>
           <DialogDescription>
@@ -251,10 +303,10 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
         </DialogHeader>
         <Separator className="my-2" />
 
-        <ScrollArea className="h-[70vh] w-full">
+        <ScrollArea className="h-[70vh] w-full p-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-1">
                 <FormField
                   control={form.control}
                   name="name"
@@ -306,6 +358,42 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Provide a short description"
+                          className="resize-none"
+                          {...field}
+                          disabled={loading || !initialValuesLoaded}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="prompt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>System Prompt</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Provide a system Prompt"
+                          className="resize-none"
+                          {...field}
+                          disabled={loading || !initialValuesLoaded}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <Separator className="my-2" />
@@ -317,7 +405,19 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                   name="temperature"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Temperature</FormLabel>
+                      <FormLabel>
+                        <div className="flex">
+                          Temperature
+                          {llmModelId && (
+                            <InfoHoverCard
+                              content={
+                                UPDATED_LLM_AGENT_PARAMETERS &&
+                                UPDATED_LLM_AGENT_PARAMETERS['temperature']
+                              }
+                            />
+                          )}
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -345,7 +445,19 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                   name="top_p"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Top P</FormLabel>
+                      <FormLabel>
+                        <div className="flex">
+                          Top P
+                          {llmModelId && (
+                            <InfoHoverCard
+                              content={
+                                UPDATED_LLM_AGENT_PARAMETERS &&
+                                UPDATED_LLM_AGENT_PARAMETERS['top_p']
+                              }
+                            />
+                          )}
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -373,7 +485,19 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                   name="top_k"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Top K</FormLabel>
+                      <FormLabel>
+                        <div className="flex">
+                          Top K
+                          {llmModelId && (
+                            <InfoHoverCard
+                              content={
+                                UPDATED_LLM_AGENT_PARAMETERS &&
+                                UPDATED_LLM_AGENT_PARAMETERS['top_k']
+                              }
+                            />
+                          )}
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -404,7 +528,19 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                   name="max_tokens"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Max Tokens</FormLabel>
+                      <FormLabel>
+                        <div className="flex">
+                          Max Tokens
+                          {llmModelId && (
+                            <InfoHoverCard
+                              content={
+                                UPDATED_LLM_AGENT_PARAMETERS &&
+                                UPDATED_LLM_AGENT_PARAMETERS['max_tokens']
+                              }
+                            />
+                          )}
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -432,7 +568,19 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                   name="presence_penalty"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Presence Penalty</FormLabel>
+                      <FormLabel>
+                        <div className="flex">
+                          Presence Penalty
+                          {llmModelId && (
+                            <InfoHoverCard
+                              content={
+                                UPDATED_LLM_AGENT_PARAMETERS &&
+                                UPDATED_LLM_AGENT_PARAMETERS['presence_penalty']
+                              }
+                            />
+                          )}
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -461,7 +609,19 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                   name="frequency_penalty"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Frequency Penalty</FormLabel>
+                      <FormLabel>
+                        <div className="flex">
+                          Frequency Penalty
+                          {llmModelId && (
+                            <InfoHoverCard
+                              content={
+                                UPDATED_LLM_AGENT_PARAMETERS &&
+                                UPDATED_LLM_AGENT_PARAMETERS['frequency_penalty']
+                              }
+                            />
+                          )}
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -493,7 +653,19 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                   name="repeat_penalty"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Repeat Penalty</FormLabel>
+                      <FormLabel>
+                        <div className="flex">
+                          Repeat Penalty
+                          {llmModelId && (
+                            <InfoHoverCard
+                              content={
+                                UPDATED_LLM_AGENT_PARAMETERS &&
+                                UPDATED_LLM_AGENT_PARAMETERS['repeat_penalty']
+                              }
+                            />
+                          )}
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
