@@ -1,7 +1,7 @@
 'use client'
 import AgentInteration from '@/app/(routes)/agent/components/agent-interation'
 import { Agent } from '@/app/(routes)/agent/types/type'
-import ChatMessage from '@/app/(routes)/chat/components/message'
+import ChatMessage from '@/app/(routes)/chat/components/chat-message'
 import { Session } from '@/app/(routes)/chat/type/types'
 import useFetch from '@/app/hooks/useFetch'
 import { RootState } from '@/app/store/store'
@@ -20,6 +20,14 @@ type Message = {
   sender: string
   content: string
   id: string
+  done?: boolean
+  isAgent?: boolean
+}
+
+interface SSEData {
+  content: string
+  sender: string
+  done: boolean
 }
 
 export default function ChatPage() {
@@ -28,15 +36,15 @@ export default function ChatPage() {
     (state: RootState) => state.agents.activeAgent,
   )
   const [userMessage, setUserMessage] = useState('')
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>([]) //New state for agent messages
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.session}`
   const { post: createSession } = useFetch<Partial<Session>>(baseUrl)
   const [sessionId, setSessionId] = useState<string | null>(null) // Track the session ID
 
   const sseRef = useRef<EventSource | null>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null) // Ref to ScrollArea
 
   const initializeSSE = (sessionId: string) => {
-    // Close existing connection if it exists
     if (sseRef.current) {
       sseRef.current.close()
     }
@@ -46,19 +54,32 @@ export default function ChatPage() {
 
     eventSource.onmessage = (event) => {
       try {
-        const message = JSON.parse(event.data) as Omit<Message, 'userId' | 'agentId'>
-        // Update the messages array with the new message
-        setMessages((prevMessages) => {
-          const messageIndex = prevMessages.findIndex((m) => m.id === message.id)
+        const payload: SSEData = JSON.parse(event.data)
 
-          if (messageIndex !== -1) {
-            // Message exists, update it
-            const newMessages = [...prevMessages]
-            newMessages[messageIndex] = message
-            return newMessages
+        setMessages((prevMessages) => {
+          if (
+            prevMessages.length > 0 &&
+            !prevMessages[prevMessages.length - 1].done &&
+            prevMessages[prevMessages.length - 1].isAgent
+          ) {
+            const updatedMessages = [...prevMessages]
+            updatedMessages[prevMessages.length - 1] = {
+              ...updatedMessages[prevMessages.length - 1],
+              content: updatedMessages[prevMessages.length - 1].content + payload.content,
+              done: payload.done,
+              sender: payload.sender,
+              isAgent: true,
+            }
+            return updatedMessages
           } else {
-            // Message doesn't exist, add it
-            return [...prevMessages, message]
+            const newMessage: Message = {
+              id: new Date().toISOString(),
+              sender: payload.sender,
+              content: payload.content,
+              done: payload.done,
+              isAgent: true,
+            }
+            return [...prevMessages, newMessage]
           }
         })
       } catch (error) {
@@ -78,10 +99,15 @@ export default function ChatPage() {
       initializeSSE(sessionId)
     }
     return () => {
-      // Clean up the SSE connection when the component unmounts or the session ID changes
       sseRef.current?.close()
     }
-  }, [sessionId]) //Re-run this effect anytime the sessionId changes
+  }, [sessionId])
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
+    }
+  }, [messages])
 
   const createChatSession = async () => {
     try {
@@ -94,15 +120,13 @@ export default function ChatPage() {
       if (!response) {
         throw new Error(`Failed to create session.`)
       }
-      //When sesison is created, get the ID and update it.
-      setSessionId(response.id ?? null) //Set session ID to start SSE
 
-      //Set all to use SSE and remove double-check, check only for sessionId.
+      setSessionId(response.id ?? null)
+
       if (response.id) {
-        //Set SSE and Messages after the ChatSession has been set.
         setSessionId(response.id)
         initializeSSE(response.id)
-        setMessages([]) // Set messages
+        setMessages([])
       }
       return response.id
     } catch (error: unknown) {
@@ -122,42 +146,41 @@ export default function ChatPage() {
     }
     return null
   }
+
+  const sendMessageToBackend = async (message: string) => {
+    let currentSessionId = sessionId ?? null
+
+    if (!currentSessionId) {
+      const newSessionId = await createChatSession()
+
+      if (!newSessionId) {
+        console.error('Failed to create chat session')
+        return
+      } else {
+        currentSessionId = newSessionId
+      }
+    }
+
+    const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/chat/${currentSessionId}/message`
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId: user?.id, message }),
+    })
+
+    if (!response.ok) {
+      console.error('Error sending message:', response.status, await response.text())
+    } else {
+      console.log('Message sent successfully')
+    }
+  }
+
   const sendMessage = async (message: string) => {
     if (message.trim() !== '') {
       setUserMessage('')
-
-      let currentSessionId: string | null = sessionId ?? null
-
-      //If there are no messages, create new chat session
-      if (!currentSessionId) {
-        // Create Chat Session if there is no seesion ID
-        const newSessionId = await createChatSession()
-
-        if (!newSessionId) {
-          // If creating a new chat session fails, early return
-          console.error('Failed to create chat session')
-          return
-        } else {
-          currentSessionId = newSessionId
-        }
-      }
-
-      // Continue Chat
-      const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/chat/${currentSessionId}/message`
-      // Send Message
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: user?.id, message }),
-      })
-
-      if (!response.ok) {
-        console.error('Error sending message:', response.status, await response.text())
-      } else {
-        console.log('Message sent successfully')
-      }
+      sendMessageToBackend(message)
     }
   }
 
@@ -171,19 +194,17 @@ export default function ChatPage() {
         </div>
         <Separator />
         <>
-          <ScrollArea className="flex-1 p-4 space-y-4 ">
+          <ScrollArea className="flex-1 p-4 space-y-4 " ref={scrollAreaRef}>
             {!activeAgent && <AgentInteration />}
-
-            {activeAgent && messages.length == 0 && (
+            {activeAgent && messages.length === 0 && (
               <AgentInteration
                 title="How may I help you??"
                 description="Please ask your queries."
               />
             )}
-
-            {activeAgent && messages.length > 0 && (
+            {activeAgent && (
               <>
-                {messages.map((eachMessage: { sender: string; content: string; id: string }) => (
+                {messages.map((eachMessage: Message) => (
                   <ChatMessage
                     key={eachMessage.id}
                     sender={eachMessage.sender}
@@ -207,7 +228,6 @@ export default function ChatPage() {
                 sendMessage(userMessage)
               }
             }}
-            disabled={activeAgent ? false : true}
           />
           <Button
             variant="outline"
@@ -215,7 +235,6 @@ export default function ChatPage() {
             onClick={() => {
               sendMessage(userMessage)
             }}
-            disabled={activeAgent ? false : true}
           >
             Send
           </Button>
