@@ -2,11 +2,11 @@
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Inter } from 'next/font/google'
+import { ReactNode } from 'react'
 import { AppSidebar } from './components/app-sidebar'
 import { ReduxProvider } from './components/providers'
 import { ThemeProvider } from './components/theme-provider'
 import './globals.css'
-import { ReactNode } from 'react'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,7 +16,7 @@ export default function RootLayout({
   children: ReactNode
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <html lang="en">
         <body className={inter.className}>
           <ReduxProvider>

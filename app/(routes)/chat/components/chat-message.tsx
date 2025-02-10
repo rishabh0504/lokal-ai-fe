@@ -20,22 +20,27 @@ const ChatMessage: FC<ChatMessageProps> = ({
   avatarSrcUser = '/icons/user.png',
   avatarSrcOther = '/icons/bot.png',
 }) => {
-  const isCurrentUser = sender === userIdentifier // Check if the message is from the current user
+  const isUser = sender === userIdentifier
+  console.log(sender, content, userIdentifier, isUser)
 
   return (
     <div
-      className={cn(
-        'flex items-start space-x-2 my-1',
-        isCurrentUser ? 'justify-end' : 'justify-start',
-      )}
+      className={cn('flex items-start space-x-2 my-1', isUser ? 'justify-end' : 'justify-start')}
     >
-      {!isCurrentUser && (
+      {!isUser && (
         <Avatar>
           <AvatarImage src={avatarSrcOther} alt="Other Avatar" />
           <AvatarFallback>U</AvatarFallback>
         </Avatar>
       )}
-      <div className={cn('p-2 rounded-lg text-sm my-1 bg-muted dark:bg-muted-foreground/10 ')}>
+      <div
+        className={cn(
+          'p-2 rounded-lg text-sm my-1 max-w-[80%] px-4',
+          isUser
+            ? 'bg-green-100 dark:bg-green-600 text-right'
+            : 'bg-muted dark:bg-muted-foreground/10 text-left',
+        )}
+      >
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw]}
@@ -44,7 +49,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
           {content}
         </ReactMarkdown>
       </div>
-      {isCurrentUser && (
+      {isUser && (
         <Avatar>
           <AvatarImage src={avatarSrcUser} alt="User Avatar" sizes="sm" />
           <AvatarFallback>Me</AvatarFallback>
