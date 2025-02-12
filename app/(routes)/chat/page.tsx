@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
-import { useUser } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 
@@ -36,21 +36,35 @@ export default function ChatPage() {
     (state: RootState) => state.agents.activeAgent,
   )
   const [userMessage, setUserMessage] = useState('')
-  const [messages, setMessages] = useState<Message[]>([]) //New state for agent messages
+  const [messages, setMessages] = useState<Message[]>([])
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.session}`
   const { post: createSession } = useFetch<Partial<Session>>(baseUrl)
-  const [sessionId, setSessionId] = useState<string | null>(null) // Track the session ID
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const { getToken } = useAuth()
 
   const sseRef = useRef<EventSource | null>(null)
-  const scrollAreaRef = useRef<HTMLDivElement>(null) // Ref to ScrollArea
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-  const initializeSSE = (sessionId: string) => {
+  const initializeSSE = async (sessionId: string) => {
     if (sseRef.current) {
       sseRef.current.close()
     }
-    const eventSource = new EventSource(
-      `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/chat/${sessionId}/stream`,
-    )
+
+    const token = await getToken()
+
+    if (!token) {
+      console.error('No Clerk token found')
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Error',
+        description: 'Could not retrieve authentication token.  Please try again.',
+      })
+      return
+    }
+    const sseUrl = new URL(`${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/chat/${sessionId}/stream`)
+    sseUrl.searchParams.append('token', token)
+
+    const eventSource = new EventSource(sseUrl)
 
     eventSource.onmessage = (event) => {
       try {
@@ -161,17 +175,35 @@ export default function ChatPage() {
       }
     }
 
+    // Get the token from the API route
+    // let tokenResponse = await fetch('/api/getToken')
+
+    const token = await getToken()
+
+    if (!token) {
+      console.error('No Clerk token found for message')
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Error',
+        description: 'Could not retrieve authentication token. Please try again.',
+      })
+      return
+    }
+
+    // Send the message to the backend
     const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/chat/${currentSessionId}/message`
-    const response = await fetch(endpoint, {
+    const messageResponse = await fetch(endpoint, {
+      // Renamed to messageResponse
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // Add the token
       },
       body: JSON.stringify({ userId: user?.id, message }),
     })
 
-    if (!response.ok) {
-      console.error('Error sending message:', response.status, await response.text())
+    if (!messageResponse.ok) {
+      console.error('Error sending message:', messageResponse.status, await messageResponse.text())
     } else {
       console.log('Message sent successfully')
     }
