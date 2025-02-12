@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef } from 'react'
+import { useAuth } from '@clerk/nextjs'
+import { useCallback, useRef, useState } from 'react'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
@@ -33,7 +34,7 @@ const useStreaming = <T>(): {
   const [error, setError] = useState<Error | null>(null)
   const [url, setUrl] = useState<string>('')
   const abortControllerRef = useRef<AbortController | null>(null)
-
+  const { getToken } = useAuth()
   const fetchData = useCallback(
     async <B>(
       fetchUrl: string,
@@ -47,12 +48,14 @@ const useStreaming = <T>(): {
       const abortController = new AbortController()
       abortControllerRef.current = abortController
       const { signal } = abortController
+      const token = await getToken()
 
       try {
         const fetchOptions: RequestInit = {
           method: method,
           headers: {
             'Content-Type': 'application/octet-stream',
+            Authorization: `Bearer ${token}`,
             ...headers,
           },
           signal,

@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-
+import { useAuth } from '@clerk/nextjs'
+import { useCallback, useEffect, useRef, useState } from 'react' // Import useRef
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
 const useFetch = <T, BodyType = null>(
@@ -31,6 +31,12 @@ const useFetch = <T, BodyType = null>(
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<Error | null>(null)
   const [url, setUrl] = useState<string>(initialUrl)
+  const { getToken } = useAuth()
+  const getTokenRef = useRef(getToken) // Persist getToken across renders
+
+  useEffect(() => {
+    getTokenRef.current = getToken // Update the ref whenever getToken changes
+  }, [getToken])
 
   const fetchData = useCallback(
     async <B = BodyType>(
@@ -41,12 +47,14 @@ const useFetch = <T, BodyType = null>(
     ): Promise<T | null> => {
       setLoading(true)
       setError(null)
+      const token = await getTokenRef.current() // Use the persisted getToken
 
       try {
         const fetchOptions: RequestInit = {
           method: method,
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
             ...headers,
           },
         }

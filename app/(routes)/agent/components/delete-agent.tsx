@@ -1,8 +1,6 @@
 'use client'
 import { Agent } from '@/app/(routes)/agent/types/type'
 import useFetch from '@/app/hooks/useFetch'
-import { fetchAgents } from '@/app/store/slices/agent.reducer'
-import { AppDispatch } from '@/app/store/store'
 import { API_CONFIG } from '@/app/utils/config'
 import {
   AlertDialog,
@@ -15,7 +13,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { toast } from '@/hooks/use-toast'
-import { useDispatch } from 'react-redux'
 
 interface DeleteAgentProps {
   agentId: string | undefined
@@ -24,8 +21,6 @@ interface DeleteAgentProps {
 }
 
 const DeleteAgent = ({ agentId, open, onClose }: DeleteAgentProps) => {
-  const dispatch = useDispatch<AppDispatch>()
-
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.get}`
   const deleteAgentURL = agentId ? `${baseUrl}/${agentId}` : baseUrl
   const { loading, del: deleteAgent } = useFetch<Agent>(deleteAgentURL)
@@ -33,7 +28,6 @@ const DeleteAgent = ({ agentId, open, onClose }: DeleteAgentProps) => {
   const handleDelete = async () => {
     try {
       await deleteAgent(deleteAgentURL)
-      dispatch(fetchAgents())
       toast({
         title: 'Agent Deleted',
         description: 'Agent deleted successfully!',
