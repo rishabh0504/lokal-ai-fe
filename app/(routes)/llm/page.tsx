@@ -13,12 +13,15 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { ChevronDown, MoreHorizontal } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import { LLMModel } from '@/app/(routes)/llm/types/type'
 import CreateLLMModel from '@/app/(routes)/llm/components/create-llm-model'
 import DeleteLLMModel from '@/app/(routes)/llm/components/delete-llm-model'
-import { RootState } from '@/app/store/store'
+import { LLMModel } from '@/app/(routes)/llm/types/type'
+import useFetch from '@/app/hooks/useFetch'
+import { setLLMs } from '@/app/store/slices/llm.reducer'
+import { AppDispatch, RootState } from '@/app/store/store'
+import { API_CONFIG } from '@/app/utils/config'
 import { formatDateForTable } from '@/app/utils/util-service'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -32,6 +35,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Loading from '@/components/ui/loading'
 import { Separator } from '@/components/ui/separator'
 import {
   Table,
@@ -42,20 +46,24 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import type { NextPage } from 'next/types'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 const LLMModelPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
-  const llmModels = useSelector((state: RootState) => state.llms.items) || []
 
   const [llmModelIdToBeEdited, setLLMModelIdToBeEdited] = useState<string | undefined>(undefined)
   const [isCreateLLMModelOpen, setIsCreateLLMModelOpen] = useState(false)
   const [llmModelIdToBeDeleted, setLLMModelIdToBeDeleted] = useState<string | undefined>(undefined)
   const [isDeleteLLMModelOpen, setIsDeleteLLMModelOpen] = useState(false)
+  const [refetchLLms, setRefetchLLms] = useState<boolean>(false)
 
+  const dispatch = useDispatch<AppDispatch>()
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`
+
+  const llmModels = useSelector((state: RootState) => state.llms.items) || []
   const memoizedLLMModels = useMemo(() => llmModels, [llmModels])
 
   const columns: ColumnDef<LLMModel>[] = useMemo(
@@ -156,6 +164,32 @@ const LLMModelPage: NextPage = () => {
     },
   })
 
+  const { loading, get: getLLMs } = useFetch<LLMModel[]>(baseUrl)
+
+  const getLargeLanguageModel = async () => {
+    const llms = await getLLMs(baseUrl)
+    if (llms && Array.isArray(llms)) {
+      dispatch(setLLMs(llms))
+    }
+  }
+  useEffect(() => {
+    const fetchLLMs = async () => {
+      if (refetchLLms) {
+        getLargeLanguageModel()
+        setRefetchLLms(false)
+      }
+    }
+    fetchLLMs()
+  }, [refetchLLms])
+
+  useEffect(() => {
+    const fetchLLMs = async () => {
+      getLargeLanguageModel()
+      setRefetchLLms(false)
+    }
+    fetchLLMs()
+  }, [dispatch, getLLMs])
+
   const handleEditLLMModel = (llmModelId: string) => {
     setLLMModelIdToBeEdited(llmModelId)
     setIsCreateLLMModelOpen(true)
@@ -164,6 +198,7 @@ const LLMModelPage: NextPage = () => {
   const handleCreateLLMModelClose = () => {
     setIsCreateLLMModelOpen(false)
     setLLMModelIdToBeEdited(undefined)
+    setRefetchLLms(true)
   }
 
   const deleteLLMModel = (llmModelId: string) => {
@@ -174,6 +209,7 @@ const LLMModelPage: NextPage = () => {
   const handleDeleteLLMModelClose = () => {
     setIsDeleteLLMModelOpen(false)
     setLLMModelIdToBeDeleted(undefined)
+    setRefetchLLms(true)
   }
 
   return (
@@ -239,22 +275,32 @@ const LLMModelPage: NextPage = () => {
                 ))}
               </TableHeader>
               <TableBody>
-                {table.getRowModel().rows.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
+                {loading ? (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No results.
+                      <Loading />
                     </TableCell>
                   </TableRow>
+                ) : (
+                  <>
+                    {table.getRowModel().rows.length ? (
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={columns.length} className="h-24 text-center">
+                          No results.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 )}
               </TableBody>
             </Table>

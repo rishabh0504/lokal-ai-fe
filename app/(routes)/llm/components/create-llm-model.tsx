@@ -2,8 +2,6 @@
 
 import { LLMModel } from '@/app/(routes)/llm/types/type'
 import useFetch from '@/app/hooks/useFetch'
-import { fetchLLMs } from '@/app/store/slices/llm.reducer'
-import { AppDispatch } from '@/app/store/store'
 import { API_CONFIG } from '@/app/utils/config'
 import { Button } from '@/components/ui/button'
 import {
@@ -29,7 +27,6 @@ import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useDispatch } from 'react-redux'
 import * as z from 'zod'
 
 const formSchema = z.object({
@@ -91,8 +88,6 @@ interface CreateLLMModelProps {
 const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
   const [isUpdate, setIsUpdate] = useState(false)
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false)
-
-  const dispatch = useDispatch<AppDispatch>()
 
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`
   const llmModelUrl = llmModelId ? `${baseUrl}/${llmModelId}` : baseUrl
@@ -260,7 +255,6 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
         description: `LLM Model ${isUpdate ? 'updated' : 'created'} successfully!`,
       })
 
-      dispatch(fetchLLMs())
       onClose()
     } catch (error: unknown) {
       let errorMessage = `Failed to ${isUpdate ? 'update' : 'create'} LLM Model. Please try again.`

@@ -100,5 +100,6 @@ export const API_CONFIG = {
   },
   chat: {
     session: 'sessions',
+    chat: 'chat',
   },
 }

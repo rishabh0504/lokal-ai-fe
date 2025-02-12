@@ -14,13 +14,24 @@ import {
 } from '@/components/ui/select'
 import { useEffect, useState } from 'react'
 
-export function CurrentAgent() {
+interface CurrentAgentProps {
+  className?: string
+  disabled?: boolean
+}
+
+const CurrentAgent: React.FC<CurrentAgentProps> = ({ className, disabled }) => {
   const dispatch = useDispatch<AppDispatch>()
 
   const agents = (useSelector((state: RootState) => state.agents.items) as Agent[]) || []
-  const activeAgent = useSelector((state: RootState) => state.agents.activeAgent) as Agent
+  const activeAgent = useSelector((state: RootState) => state.agents.activeAgent) as Agent | null
 
   const [value, setValue] = useState<string>(activeAgent?.id || '')
+
+  useEffect(() => {
+    if (activeAgent?.id) {
+      setValue(activeAgent.id)
+    }
+  }, [activeAgent])
 
   useEffect(() => {
     if (value) {
@@ -36,8 +47,8 @@ export function CurrentAgent() {
   }
 
   return (
-    <Select onValueChange={handleValueChange} value={value}>
-      <SelectTrigger className="w-[200px] text-sm">
+    <Select onValueChange={handleValueChange} value={value} disabled={disabled}>
+      <SelectTrigger className={`w-[200px] text-sm ${className || ''}`}>
         <SelectValue placeholder="Select Agent" />
       </SelectTrigger>
       <SelectContent>
@@ -50,3 +61,4 @@ export function CurrentAgent() {
     </Select>
   )
 }
+export default CurrentAgent

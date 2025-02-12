@@ -12,12 +12,15 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import CreateAgent from '@/app/(routes)/agent/components/create-agent'
 import DeleteAgent from '@/app/(routes)/agent/components/delete-agent'
 import { Agent } from '@/app/(routes)/agent/types/type'
-import { RootState } from '@/app/store/store'
+import useFetch from '@/app/hooks/useFetch'
+import { setAgents } from '@/app/store/slices/agent.reducer'
+import { AppDispatch, RootState } from '@/app/store/store'
+import { API_CONFIG } from '@/app/utils/config'
 import { formatDateForTable } from '@/app/utils/util-service'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -31,6 +34,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Loading from '@/components/ui/loading'
 import { Separator } from '@/components/ui/separator'
 import {
   Table,
@@ -41,7 +45,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import type { NextPage } from 'next/types'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 const AgentPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -54,6 +58,37 @@ const AgentPage: NextPage = () => {
   const [isCreateAgentOpen, setIsCreateAgentOpen] = useState(false)
   const [agentIdToBeDeleted, setAgentIdToBeDeleted] = useState<string | undefined>(undefined)
   const [isDeleteAgentOpen, setIsDeleteAgentOpen] = useState(false)
+
+  const [refetchAgent, setRefetchAgent] = useState<boolean>(false)
+  const dispatch = useDispatch<AppDispatch>()
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.get}`
+
+  const { loading, get: getAgents } = useFetch<Agent[]>(baseUrl)
+
+  const getAgentList = async () => {
+    const agents = await getAgents(baseUrl)
+    if (agents && Array.isArray(agents)) {
+      dispatch(setAgents(agents))
+    }
+  }
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      getAgentList()
+      setRefetchAgent(false)
+    }
+    fetchAgents()
+  }, [dispatch, getAgents])
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      if (refetchAgent) {
+        getAgentList()
+        setRefetchAgent(false)
+      }
+    }
+    fetchAgents()
+  }, [refetchAgent])
 
   const memoizedAgents = useMemo(() => agents, [agents])
 
@@ -177,6 +212,7 @@ const AgentPage: NextPage = () => {
   const handleCreateAgentClose = () => {
     setIsCreateAgentOpen(false)
     setAgentIdToBeEdited(undefined)
+    setRefetchAgent(true)
   }
   const deleteAgent = (agentId: string) => {
     setAgentIdToBeDeleted(agentId)
@@ -185,6 +221,7 @@ const AgentPage: NextPage = () => {
   const handleDeleteAgentClose = () => {
     setIsDeleteAgentOpen(false)
     setAgentIdToBeDeleted(undefined)
+    setRefetchAgent(true)
   }
 
   return (
@@ -250,22 +287,32 @@ const AgentPage: NextPage = () => {
                 ))}
               </TableHeader>
               <TableBody>
-                {table.getRowModel().rows.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
+                {loading ? (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No results.
+                      <Loading />
                     </TableCell>
                   </TableRow>
+                ) : (
+                  <>
+                    {table.getRowModel().rows.length ? (
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={columns.length} className="h-24 text-center">
+                          No results.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 )}
               </TableBody>
             </Table>

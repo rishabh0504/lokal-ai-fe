@@ -1,37 +1,37 @@
-import { LLMModel } from '@/app/(routes)/llm/types/type'
+import { SessionModel } from '@/app/components/nav-main'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-interface LLMState {
-  items: LLMModel[]
+interface SessionState {
+  items: SessionModel[]
   loading: boolean
   error: string | null
 }
 
-const initialState: LLMState = {
+const initialState: SessionState = {
   items: [],
   loading: false,
   error: null,
 }
 
-export const llmSlice = createSlice({
-  name: 'llms',
+export const sessionSlice = createSlice({
+  name: 'sessions',
   initialState,
   reducers: {
-    setLLMs: (state, action: PayloadAction<LLMModel[]>) => {
+    setSessions: (state, action: PayloadAction<SessionModel[]>) => {
       state.items = action.payload
-      state.loading = false // Assuming the data is loaded when this action is dispatched
+      state.loading = false
       state.error = null
     },
-    addLLM: (state, action: PayloadAction<LLMModel>) => {
+    addSession: (state, action: PayloadAction<SessionModel>) => {
       state.items.push(action.payload)
     },
-    updateLLM: (state, action: PayloadAction<LLMModel>) => {
+    updateSession: (state, action: PayloadAction<SessionModel>) => {
       const index = state.items.findIndex((item) => item.id === action.payload.id)
       if (index !== -1) {
         state.items[index] = action.payload
       }
     },
-    deleteLLM: (state, action: PayloadAction<string>) => {
+    deleteSession: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((item) => item.id !== action.payload)
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -43,6 +43,7 @@ export const llmSlice = createSlice({
   },
 })
 
-export const { setLLMs, addLLM, updateLLM, deleteLLM, setLoading, setError } = llmSlice.actions
+export const { setSessions, addSession, updateSession, deleteSession, setLoading, setError } =
+  sessionSlice.actions
 
-export default llmSlice.reducer
+export default sessionSlice.reducer

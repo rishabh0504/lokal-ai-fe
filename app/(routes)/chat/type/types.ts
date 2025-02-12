@@ -5,9 +5,9 @@ export interface Session {
   created_at: Date
   updated_at: Date
   expires_at: Date | null
-  title: string | null
+  title: string
   status: string
   userId: string
-  agentId: string | null
+  agentId: string
   agent?: Agent
 }

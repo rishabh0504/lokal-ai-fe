@@ -1,6 +1,6 @@
 'use client'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider, SignIn, useUser } from '@clerk/nextjs'
 import { Inter } from 'next/font/google'
 import { ReactNode } from 'react'
 import { AppSidebar } from './components/app-sidebar'
@@ -18,6 +18,9 @@ export default function RootLayout({
   return (
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <html lang="en">
+        <head>
+          <link rel="icon" href="/favicon.ico" />
+        </head>
         <body className={inter.className}>
           <ReduxProvider>
             <ThemeProvider
@@ -26,16 +29,32 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>
-                  <main>{children}</main>
-                </SidebarInset>
-              </SidebarProvider>
+              <AuthWrapper>{children}</AuthWrapper>
             </ThemeProvider>
           </ReduxProvider>
         </body>
       </html>
     </ClerkProvider>
   )
+}
+
+function AuthWrapper({ children }: { children: ReactNode }) {
+  const { isSignedIn } = useUser()
+
+  if (isSignedIn) {
+    return (
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset className="overflow-x-auto overflow-y-hidden">
+          <main>{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
+    )
+  } else {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <SignIn />
+      </div>
+    )
+  }
 }

@@ -4,8 +4,7 @@ import { Agent } from '@/app/(routes)/agent/types/type'
 import { LLMModel } from '@/app/(routes)/llm/types/type'
 import InfoHoverCard from '@/app/components/info-card-hover'
 import useFetch from '@/app/hooks/useFetch'
-import { fetchAgents } from '@/app/store/slices/agent.reducer'
-import { AppDispatch, RootState } from '@/app/store/store'
+import { RootState } from '@/app/store/store'
 import { LLM_AGENT_PARAMETERS } from '@/app/utils/common.constant'
 import { API_CONFIG } from '@/app/utils/config'
 import { StringKeyStringValueType } from '@/app/utils/types'
@@ -40,7 +39,7 @@ import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import * as z from 'zod'
 
 interface CreateAgentProps {
@@ -81,7 +80,6 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
   const [selectedLLM, setSelectedLLM] = useState<LLMModel | null>(null)
 
   const llms = useSelector((state: RootState) => state.llms.items) || []
-  const dispatch = useDispatch<AppDispatch>()
 
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.get}`
   const agentUrl = agentId ? `${baseUrl}/${agentId}` : baseUrl
@@ -251,7 +249,6 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
         title: `Agent ${isUpdate ? 'Updated' : 'Created'}`,
         description: `Agent ${isUpdate ? 'updated' : 'created'} successfully!`,
       })
-      dispatch(fetchAgents())
       onClose()
     } catch (error: unknown) {
       let errorMessage = `Failed to ${isUpdate ? 'update' : 'create'} agent. Please try again.`
