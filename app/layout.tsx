@@ -18,6 +18,9 @@ export default function RootLayout({
   return (
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <html lang="en">
+        <head>
+          <link rel="icon" href="/favicon.ico" />
+        </head>
         <body className={inter.className}>
           <ReduxProvider>
             <ThemeProvider
@@ -42,7 +45,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
     return (
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset>
+        <SidebarInset className="overflow-x-auto overflow-y-hidden">
           <main>{children}</main>
         </SidebarInset>
       </SidebarProvider>

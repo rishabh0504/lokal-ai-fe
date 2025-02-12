@@ -3,18 +3,23 @@ import AgentInteration from '@/app/(routes)/agent/components/agent-interation'
 import { Agent } from '@/app/(routes)/agent/types/type'
 import ChatMessage from '@/app/(routes)/chat/components/chat-message'
 import { Session } from '@/app/(routes)/chat/type/types'
+import { SessionModel } from '@/app/components/nav-main'
 import useFetch from '@/app/hooks/useFetch'
-import { RootState } from '@/app/store/store'
+import { setActiveAgent } from '@/app/store/slices/agent.reducer'
+import { AppDispatch, RootState } from '@/app/store/store'
 import { API_CONFIG } from '@/app/utils/config'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import Loading from '@/components/ui/loading'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
-import { useUser } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import CurrentAgent from '../agent/components/current-agent'
 
 type Message = {
   sender: string
@@ -35,22 +40,83 @@ export default function ChatPage() {
   const activeAgent: Partial<Agent> | null = useSelector(
     (state: RootState) => state.agents.activeAgent,
   )
+
+  const allAgents: Agent[] = useSelector((state: RootState) => state.agents.items)
+  const allSessions: SessionModel[] = useSelector((state: RootState) => state.sessions.items) || []
+
+  const dispatch = useDispatch<AppDispatch>()
+
   const [userMessage, setUserMessage] = useState('')
-  const [messages, setMessages] = useState<Message[]>([]) //New state for agent messages
+  const [messages, setMessages] = useState<Message[]>([])
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.session}`
   const { post: createSession } = useFetch<Partial<Session>>(baseUrl)
-  const [sessionId, setSessionId] = useState<string | null>(null) // Track the session ID
+  const chatBasepoint = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.chat}`
+
+  const { get: fetchHistory } = useFetch<Message[]>(chatBasepoint)
+
+  const [historyLoading, setHistoryLoading] = useState(false)
+
+  const { getToken } = useAuth()
+
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const sessionIdFromParams = searchParams.get('sessionId')
+  const [sessionId, setSessionId] = useState<string | null>(null)
 
   const sseRef = useRef<EventSource | null>(null)
-  const scrollAreaRef = useRef<HTMLDivElement>(null) // Ref to ScrollArea
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-  const initializeSSE = (sessionId: string) => {
+  useEffect(() => {
+    if (sessionIdFromParams) {
+      if (allSessions && allAgents && Array.isArray(allSessions) && Array.isArray(allAgents)) {
+        const session = allSessions.find(
+          (eachSession: SessionModel) => eachSession.id === sessionIdFromParams,
+        )
+        if (session) {
+          const agentId = session.agentId
+          if (agentId) {
+            const foundAgent = allAgents.find((agent: Agent) => agent.id === agentId)
+            if (foundAgent) {
+              dispatch(setActiveAgent(foundAgent))
+            } else {
+              console.warn(`Agent with ID ${agentId} not found in allAgents.`)
+            }
+          } else {
+            console.warn(`No agent ID found for session ${sessionIdFromParams}.`)
+          }
+        }
+      }
+
+      setSessionId(sessionIdFromParams)
+      initializeSSE(sessionIdFromParams)
+      fetchChatHistory(sessionIdFromParams)
+    } else {
+      setActiveAgent(null)
+      setMessages([])
+    }
+  }, [sessionIdFromParams, allSessions, allAgents, dispatch, setActiveAgent])
+
+  const initializeSSE = async (sessionId: string) => {
     if (sseRef.current) {
       sseRef.current.close()
     }
-    const eventSource = new EventSource(
-      `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/chat/${sessionId}/stream`,
-    )
+
+    const token = await getToken()
+
+    if (!token) {
+      console.error('No Clerk token found')
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Error',
+        description: 'Could not retrieve authentication token. Please try again.',
+      })
+      return
+    }
+    const sseUrl = new URL(`${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/chat/${sessionId}/stream`)
+    sseUrl.searchParams.append('token', token)
+
+    const eventSource = new EventSource(sseUrl)
 
     eventSource.onmessage = (event) => {
       try {
@@ -94,14 +160,28 @@ export default function ChatPage() {
     sseRef.current = eventSource
   }
 
-  useEffect(() => {
-    if (sessionId) {
-      initializeSSE(sessionId)
+  const fetchChatHistory = async (sessionId: string) => {
+    try {
+      setHistoryLoading(true)
+      const historyMessage: Message[] | null = await fetchHistory(
+        `${chatBasepoint}/${sessionId}/chat-history`,
+      )
+      if (historyMessage && Array.isArray(historyMessage)) {
+        setMessages(historyMessage)
+      }
+      if (!historyMessage) {
+        setMessages([])
+      }
+      setHistoryLoading(false)
+    } catch (error) {
+      console.error('Error fetching chat history:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load chat history. Please try again.',
+      })
     }
-    return () => {
-      sseRef.current?.close()
-    }
-  }, [sessionId])
+  }
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -122,12 +202,10 @@ export default function ChatPage() {
       }
 
       setSessionId(response.id ?? null)
-
       if (response.id) {
-        setSessionId(response.id)
-        initializeSSE(response.id)
-        setMessages([])
+        router.push(`/chat?sessionId=${response.id}`)
       }
+
       return response.id
     } catch (error: unknown) {
       let errorMessage = `Failed to initiate chat. Please try again.`
@@ -148,30 +226,37 @@ export default function ChatPage() {
   }
 
   const sendMessageToBackend = async (message: string) => {
-    let currentSessionId = sessionId ?? null
+    const currentSessionId = sessionId ?? null
 
     if (!currentSessionId) {
-      const newSessionId = await createChatSession()
+      await createChatSession()
+      return
+    }
 
-      if (!newSessionId) {
-        console.error('Failed to create chat session')
-        return
-      } else {
-        currentSessionId = newSessionId
-      }
+    const token = await getToken()
+
+    if (!token) {
+      console.error('No Clerk token found for message')
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Error',
+        description: 'Could not retrieve authentication token. Please try again.',
+      })
+      return
     }
 
     const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/chat/${currentSessionId}/message`
-    const response = await fetch(endpoint, {
+    const messageResponse = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ userId: user?.id, message }),
     })
 
-    if (!response.ok) {
-      console.error('Error sending message:', response.status, await response.text())
+    if (!messageResponse.ok) {
+      console.error('Error sending message:', messageResponse.status, await messageResponse.text())
     } else {
       console.log('Message sent successfully')
     }
@@ -188,9 +273,16 @@ export default function ChatPage() {
     <div className="w-full flex flex-col px-4 md:px-6 lg:px-8 ">
       <div className="flex flex-col h-screen w-full bg-background ">
         <div className="flex justify-between items-center py-4">
-          <Label htmlFor="Agent" className="text-lg font-semibold tracking-tight text-primary">
+          <Label
+            htmlFor="Agent"
+            className="text-lg font-semibold tracking-tight text-primary flex-grow text-left"
+          >
             Chat
           </Label>
+          <CurrentAgent
+            className="flex-shrink-0 text-right"
+            disabled={activeAgent !== null && messages.length > 0}
+          />
         </div>
         <Separator />
         <>
@@ -202,7 +294,8 @@ export default function ChatPage() {
                 description="Please ask your queries."
               />
             )}
-            {activeAgent && (
+            {historyLoading && <Loading />}
+            {((activeAgent && sessionId) || sessionId) && (
               <>
                 {messages.map((eachMessage: Message) => (
                   <ChatMessage
@@ -228,10 +321,12 @@ export default function ChatPage() {
                 sendMessage(userMessage)
               }
             }}
+            disabled={!activeAgent}
           />
           <Button
             variant="outline"
             size="sm"
+            disabled={!activeAgent}
             onClick={() => {
               sendMessage(userMessage)
             }}
