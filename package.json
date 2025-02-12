@@ -10,7 +10,7 @@
     "lint": "next lint",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format:check": " yarn run format && prettier --check .",
     "test": "jest --ci --coverage --passWithNoTests",
     "test:watch": "jest --watch",
     "clean": "rm -rf node_modules .next "
