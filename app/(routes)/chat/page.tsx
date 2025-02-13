@@ -47,7 +47,7 @@ export default function ChatPage() {
   const dispatch = useDispatch<AppDispatch>()
 
   const [userMessage, setUserMessage] = useState('')
-  const [messages, setMessages] = useState<Message[]>([]) //New state for agent messages
+  const [messages, setMessages] = useState<Message[]>([])
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.session}`
   const { post: createSession } = useFetch<Partial<Session>>(baseUrl)
   const chatBasepoint = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.chat}`
@@ -87,13 +87,13 @@ export default function ChatPage() {
           }
         }
       }
-
       setSessionId(sessionIdFromParams)
       initializeSSE(sessionIdFromParams)
       fetchChatHistory(sessionIdFromParams)
     } else {
       setActiveAgent(null)
       setMessages([])
+      setSessionId(null)
     }
   }, [sessionIdFromParams, allSessions, allAgents, dispatch, setActiveAgent])
 
@@ -281,7 +281,7 @@ export default function ChatPage() {
           </Label>
           <CurrentAgent
             className="flex-shrink-0 text-right"
-            disabled={activeAgent !== null && messages.length > 0}
+            disabled={(activeAgent !== null && messages.length > 0) || !!sessionId}
           />
         </div>
         <Separator />

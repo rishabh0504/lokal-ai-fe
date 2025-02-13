@@ -12,13 +12,18 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
+import { Separator } from '@radix-ui/react-separator'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { Agent } from '../(routes)/agent/types/type'
 import Chat from '../(routes)/chat/components/chat'
+import { LLMModel } from '../(routes)/llm/types/type'
 import useFetch from '../hooks/useFetch'
+import { setAgents } from '../store/slices/agent.reducer'
+import { setLLMs } from '../store/slices/llm.reducer'
 import { setSessions } from '../store/slices/session.reducer'
 import { AppDispatch, RootState } from '../store/store'
 import { API_CONFIG, SIDEBAR_CONFIG } from '../utils/config'
@@ -33,26 +38,61 @@ export function NavMain() {
   const sidebarConfigItem = SIDEBAR_CONFIG
   const pathname = usePathname()
   const dispatch = useDispatch<AppDispatch>()
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.session}`
   const chatSessions = useSelector((state: RootState) => state.sessions.items) || []
 
   const searchParams = useSearchParams()
   const sessionIdFromParams = searchParams.get('sessionId')
-  const { get: fetchSessions } = useFetch<SessionModel[]>(baseUrl)
 
-  const getAllChatSession = async () => {
-    const sessions = await fetchSessions(baseUrl)
+  // Fetch all the sessions======================
+  const sessionsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.session}`
+  const { get: fetchSessions } = useFetch<SessionModel[]>(sessionsBaseUrl)
+  const getAllSessions = async () => {
+    const sessions = await fetchSessions(sessionsBaseUrl)
     if (sessions && Array.isArray(sessions)) {
       dispatch(setSessions(sessions))
     }
   }
-
   useEffect(() => {
-    const fetchLLMs = async () => {
-      getAllChatSession()
+    const fetchSessions = async () => {
+      getAllSessions()
     }
-    fetchLLMs()
+    fetchSessions()
   }, [dispatch, fetchSessions])
+  // Fetch all the sessions completed ======================
+
+  // Fetch all the llms======================
+  const llmsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`
+  const { get: fetchLLMs } = useFetch<LLMModel[]>(llmsBaseUrl)
+  const getAllLLMs = async () => {
+    const llms = await fetchLLMs(llmsBaseUrl)
+    if (llms && Array.isArray(llms)) {
+      dispatch(setLLMs(llms))
+    }
+  }
+  useEffect(() => {
+    const fetchLLms = async () => {
+      getAllLLMs()
+    }
+    fetchLLms()
+  }, [dispatch, fetchLLMs])
+  // Fetch all the llms  completed ======================
+
+  // Fetch all the agents======================
+  const agentsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.get}`
+  const { get: fetchAgents } = useFetch<Agent[]>(agentsBaseUrl)
+  const getAgents = async () => {
+    const agents = await fetchAgents(agentsBaseUrl)
+    if (agents && Array.isArray(agents)) {
+      dispatch(setAgents(agents))
+    }
+  }
+  useEffect(() => {
+    const getAgentsList = async () => {
+      getAgents()
+    }
+    getAgentsList()
+  }, [dispatch, fetchAgents])
+  // Fetch all the agents  completed ======================
 
   useEffect(() => {
     SIDEBAR_CONFIG.navItems = SIDEBAR_CONFIG.navItems.map((eachItem: NavItem) => {
@@ -66,7 +106,14 @@ export function NavMain() {
 
           return {
             ...eachItem,
-            items: [...eachItem.items, ...chatSessionList],
+            items: [
+              {
+                name: 'New Chat',
+                url: '/chat',
+                component: Chat,
+              },
+              ...chatSessionList,
+            ],
           }
         }
       }
@@ -77,6 +124,7 @@ export function NavMain() {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <Separator />
       <SidebarMenu>
         {sidebarConfigItem.navItems.map((item) => {
           const hasActiveSubItem = item.items?.some((subItem) =>
