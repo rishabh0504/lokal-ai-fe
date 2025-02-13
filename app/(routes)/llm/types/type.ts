@@ -43,3 +43,21 @@ export type LLMModel = {
   created_at: string
   updated_at: string
 }
+
+export interface ModelResponse {
+  name: string
+  modified_at: Date
+  size: number
+  digest: string
+  details: ModelDetails
+  expires_at: Date
+  size_vram: number
+}
+export interface ModelDetails {
+  parent_model: string
+  format: string
+  family: string
+  families: string[]
+  parameter_size: string
+  quantization_level: string
+}

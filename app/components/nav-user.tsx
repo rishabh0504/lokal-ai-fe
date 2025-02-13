@@ -17,7 +17,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useAuth, useUser } from '@clerk/nextjs'
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react'
+import { BadgeCheck, Bell, ChevronsUpDown, LogOut } from 'lucide-react'
 
 export function NavUser() {
   const { isMobile } = useSidebar()
@@ -68,20 +68,10 @@ export function NavUser() {
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem>
-                  <Sparkles />
-                  Upgrade to Pro
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem>
                   <BadgeCheck />
                   Account
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <CreditCard />
-                  Billing
-                </DropdownMenuItem>
+
                 <DropdownMenuItem>
                   <Bell />
                   Notifications

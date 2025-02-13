@@ -87,13 +87,16 @@ export const DASHBOARD_STATS = {
 
 export const API_CONFIG = {
   llms: {
-    get: 'llm-models',
+    root: 'llm-models',
   },
   agents: {
-    get: 'agents',
+    root: 'agents',
   },
   chat: {
     session: 'sessions',
-    chat: 'chat',
+    root: 'chat',
+  },
+  aiService: {
+    root: 'ai-services/models',
   },
 }

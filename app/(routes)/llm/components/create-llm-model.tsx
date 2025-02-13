@@ -1,7 +1,8 @@
 'use client'
 
-import { LLMModel } from '@/app/(routes)/llm/types/type'
+import { LLMModel, ModelResponse } from '@/app/(routes)/llm/types/type'
 import useFetch from '@/app/hooks/useFetch'
+import { RootState } from '@/app/store/store'
 import { API_CONFIG } from '@/app/utils/config'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,12 +22,20 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useSelector } from 'react-redux'
 import * as z from 'zod'
 
 const formSchema = z.object({
@@ -34,10 +43,9 @@ const formSchema = z.object({
     .string()
     .min(2, { message: 'Name must be at least 2 characters.' })
     .max(50, { message: 'Name cannot exceed 50 characters.' }),
-  modelName: z
-    .string()
-    .min(2, { message: 'Model Name must be at least 2 characters.' })
-    .max(50, { message: 'Model Name cannot exceed 50 characters.' }),
+  modelName: z.string({
+    required_error: 'Please select a ollama model.',
+  }),
   version: z.string(),
   description: z
     .string()
@@ -88,8 +96,10 @@ interface CreateLLMModelProps {
 const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
   const [isUpdate, setIsUpdate] = useState(false)
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false)
+  const ollamaModels: ModelResponse[] =
+    useSelector((state: RootState) => state.llms.ollamaModels) || []
 
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.root}`
   const llmModelUrl = llmModelId ? `${baseUrl}/${llmModelId}` : baseUrl
 
   const { loading, get, post, put } = useFetch<LLMModel>(baseUrl)
@@ -276,7 +286,7 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
   }
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="sm:max-w-[850px]">
         <DialogHeader>
           <DialogTitle>{llmModelId ? 'Update LLM Model' : 'Create LLM Model'}</DialogTitle>
           <DialogDescription>
@@ -284,10 +294,13 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
               ? 'Modify the LLM Model as you need.'
               : 'Add a new LLM Model to your application.'}
           </DialogDescription>
+          <DialogDescription>
+            {`( Make sure the parameters are as per the model selected)`}
+          </DialogDescription>
         </DialogHeader>
         <Separator className="my-2" />
 
-        <ScrollArea className="h-[60vh] w-full m-2">
+        <ScrollArea className="h-[60vh] w-full m-2 p-3">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -314,13 +327,24 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Model Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="ollama Model Name"
-                          {...field}
-                          disabled={isUpdate || loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
+                      <Select
+                        disabled={isUpdate || loading || !initialValuesLoaded}
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select ollama Model" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {ollamaModels.map((model) => (
+                            <SelectItem key={model.name} value={model.name}>
+                              {model.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
