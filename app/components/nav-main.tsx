@@ -20,10 +20,10 @@ import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Agent } from '../(routes)/agent/types/type'
 import Chat from '../(routes)/chat/components/chat'
-import { LLMModel } from '../(routes)/llm/types/type'
+import { LLMModel, ModelResponse } from '../(routes)/llm/types/type'
 import useFetch from '../hooks/useFetch'
 import { setAgents } from '../store/slices/agent.reducer'
-import { setLLMs } from '../store/slices/llm.reducer'
+import { setLLMs, setOllamaModels } from '../store/slices/llm.reducer'
 import { setSessions } from '../store/slices/session.reducer'
 import { AppDispatch, RootState } from '../store/store'
 import { API_CONFIG, SIDEBAR_CONFIG } from '../utils/config'
@@ -61,7 +61,7 @@ export function NavMain() {
   // Fetch all the sessions completed ======================
 
   // Fetch all the llms======================
-  const llmsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`
+  const llmsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.root}`
   const { get: fetchLLMs } = useFetch<LLMModel[]>(llmsBaseUrl)
   const getAllLLMs = async () => {
     const llms = await fetchLLMs(llmsBaseUrl)
@@ -78,7 +78,7 @@ export function NavMain() {
   // Fetch all the llms  completed ======================
 
   // Fetch all the agents======================
-  const agentsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.get}`
+  const agentsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.root}`
   const { get: fetchAgents } = useFetch<Agent[]>(agentsBaseUrl)
   const getAgents = async () => {
     const agents = await fetchAgents(agentsBaseUrl)
@@ -93,6 +93,23 @@ export function NavMain() {
     getAgentsList()
   }, [dispatch, fetchAgents])
   // Fetch all the agents  completed ======================
+
+  // Fetch all the ollama models======================
+  const ollamaModelsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.aiService.root}`
+  const { get: fetchOllamaModels } = useFetch<ModelResponse[]>(ollamaModelsBaseUrl)
+  const getOllamaModels = async () => {
+    const ollamaModels = await fetchOllamaModels(ollamaModelsBaseUrl)
+    if (ollamaModels && Array.isArray(ollamaModels)) {
+      dispatch(setOllamaModels(ollamaModels))
+    }
+  }
+  useEffect(() => {
+    const getOllamaModelList = async () => {
+      getOllamaModels()
+    }
+    getOllamaModelList()
+  }, [dispatch, fetchOllamaModels])
+  // Fetch all the ollama models  completed ======================
 
   useEffect(() => {
     SIDEBAR_CONFIG.navItems = SIDEBAR_CONFIG.navItems.map((eachItem: NavItem) => {

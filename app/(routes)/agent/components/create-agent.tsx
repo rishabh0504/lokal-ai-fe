@@ -81,7 +81,7 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
 
   const llms = useSelector((state: RootState) => state.llms.items) || []
 
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.get}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.root}`
   const agentUrl = agentId ? `${baseUrl}/${agentId}` : baseUrl
 
   const { loading, get, post, put } = useFetch<Agent>(baseUrl)

@@ -50,8 +50,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.session}`
   const { post: createSession } = useFetch<Partial<Session>>(baseUrl)
-  const chatBasepoint = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.chat}`
-
+  const chatBasepoint = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.root}`
+  const [isStreaming, setIsStreaming] = useState<boolean>(false)
   const { get: fetchHistory } = useFetch<Message[]>(chatBasepoint)
 
   const [historyLoading, setHistoryLoading] = useState(false)
@@ -128,6 +128,7 @@ export default function ChatPage() {
             !prevMessages[prevMessages.length - 1].done &&
             prevMessages[prevMessages.length - 1].isAgent
           ) {
+            setIsStreaming(true)
             const updatedMessages = [...prevMessages]
             updatedMessages[prevMessages.length - 1] = {
               ...updatedMessages[prevMessages.length - 1],
@@ -145,6 +146,7 @@ export default function ChatPage() {
               done: payload.done,
               isAgent: true,
             }
+            setIsStreaming(false)
             return [...prevMessages, newMessage]
           }
         })
@@ -321,12 +323,12 @@ export default function ChatPage() {
                 sendMessage(userMessage)
               }
             }}
-            disabled={!activeAgent}
+            disabled={!activeAgent || isStreaming}
           />
           <Button
             variant="outline"
             size="sm"
-            disabled={!activeAgent}
+            disabled={!activeAgent || isStreaming}
             onClick={() => {
               sendMessage(userMessage)
             }}

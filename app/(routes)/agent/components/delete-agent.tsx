@@ -21,7 +21,7 @@ interface DeleteAgentProps {
 }
 
 const DeleteAgent = ({ agentId, open, onClose }: DeleteAgentProps) => {
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.get}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.root}`
   const deleteAgentURL = agentId ? `${baseUrl}/${agentId}` : baseUrl
   const { loading, del: deleteAgent } = useFetch<Agent>(deleteAgentURL)
 
