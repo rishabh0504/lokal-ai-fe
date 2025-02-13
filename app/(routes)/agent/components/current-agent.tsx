@@ -45,6 +45,8 @@ const CurrentAgent: React.FC<CurrentAgentProps> = ({ className, disabled }) => {
   useEffect(() => {
     if (activeAgent?.id) {
       setValue(activeAgent.id)
+    } else {
+      setValue('')
     }
   }, [activeAgent])
 

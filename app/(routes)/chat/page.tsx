@@ -8,7 +8,6 @@ import useFetch from '@/app/hooks/useFetch'
 import { setActiveAgent } from '@/app/store/slices/agent.reducer'
 import { AppDispatch, RootState } from '@/app/store/store'
 import { API_CONFIG } from '@/app/utils/config'
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import Loading from '@/components/ui/loading'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -51,7 +50,7 @@ export default function ChatPage() {
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.session}`
   const { post: createSession } = useFetch<Partial<Session>>(baseUrl)
   const chatBasepoint = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.chat.root}`
-  const [isStreaming, setIsStreaming] = useState<boolean>(false)
+  const [isStreaming, setIsStreaming] = useState<boolean>(false) // Enable streaming
   const { get: fetchHistory } = useFetch<Message[]>(chatBasepoint)
 
   const [historyLoading, setHistoryLoading] = useState(false)
@@ -66,6 +65,9 @@ export default function ChatPage() {
 
   const sseRef = useRef<EventSource | null>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+
+  // ref for textarea
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     if (sessionIdFromParams) {
@@ -91,16 +93,21 @@ export default function ChatPage() {
       initializeSSE(sessionIdFromParams)
       fetchChatHistory(sessionIdFromParams)
     } else {
-      setActiveAgent(null)
+      dispatch(setActiveAgent(null))
       setMessages([])
       setSessionId(null)
+      // close sse if exists.
+      closeSSE()
+    }
+
+    // Cleanup SSE on unmount (navigation away from the page)
+    return () => {
+      closeSSE()
     }
   }, [sessionIdFromParams, allSessions, allAgents, dispatch, setActiveAgent])
 
   const initializeSSE = async (sessionId: string) => {
-    if (sseRef.current) {
-      sseRef.current.close()
-    }
+    closeSSE() // Close any existing SSE connection before creating a new one
 
     const token = await getToken()
 
@@ -121,45 +128,64 @@ export default function ChatPage() {
     eventSource.onmessage = (event) => {
       try {
         const payload: SSEData = JSON.parse(event.data)
-
         setMessages((prevMessages) => {
-          if (
-            prevMessages.length > 0 &&
-            !prevMessages[prevMessages.length - 1].done &&
-            prevMessages[prevMessages.length - 1].isAgent
-          ) {
-            setIsStreaming(true)
-            const updatedMessages = [...prevMessages]
-            updatedMessages[prevMessages.length - 1] = {
-              ...updatedMessages[prevMessages.length - 1],
-              content: updatedMessages[prevMessages.length - 1].content + payload.content,
-              done: payload.done,
-              sender: payload.sender,
-              isAgent: true,
-            }
-            return updatedMessages
-          } else {
+          const clonedMessages = [...prevMessages]
+          if (clonedMessages.length === 0 || clonedMessages[clonedMessages.length - 1].done) {
+            // Create fresh entry
             const newMessage: Message = {
               id: new Date().toISOString(),
               sender: payload.sender,
               content: payload.content,
               done: payload.done,
-              isAgent: true,
+              isAgent: payload.sender === 'agent',
             }
-            setIsStreaming(false)
-            return [...prevMessages, newMessage]
+            return [...clonedMessages, newMessage]
+          } else {
+            // Update the last message immutably
+            const lastMessageIndex = clonedMessages.length - 1
+            const updatedLastMessage: Message = {
+              ...clonedMessages[lastMessageIndex],
+              content: clonedMessages[lastMessageIndex].content + payload.content,
+              done: payload.done,
+              sender: payload.sender,
+              isAgent: payload.sender === 'agent',
+            }
+            const updatedMessages = [...clonedMessages]
+            updatedMessages[lastMessageIndex] = updatedLastMessage
+            return updatedMessages
           }
         })
+        setIsStreaming(!payload.done)
       } catch (error) {
         console.error('Error parsing SSE data:', error)
+        setIsStreaming(false)
       }
     }
 
     eventSource.onerror = (error) => {
       console.error('SSE error:', error)
+      setIsStreaming(false) // Disable streaming in case of an error
       eventSource.close()
     }
+
+    eventSource.onopen = () => {
+      console.log('SSE connection opened.')
+    }
+
+    eventSource.addEventListener('close', () => {
+      console.log('SSE connection closed by server.')
+      setIsStreaming(false) // Ensure streaming is disabled when connection is closed.
+    })
+
     sseRef.current = eventSource
+  }
+
+  const closeSSE = () => {
+    if (sseRef.current) {
+      sseRef.current.close()
+      sseRef.current = null
+    }
+    setIsStreaming(false) // ensure stream is set to false.
   }
 
   const fetchChatHistory = async (sessionId: string) => {
@@ -266,11 +292,17 @@ export default function ChatPage() {
 
   const sendMessage = async (message: string) => {
     if (message.trim() !== '') {
-      setUserMessage('')
-      sendMessageToBackend(message)
+      // setIsStreaming(true) // Set streaming to true ONLY when sending
+      if (textareaRef.current) {
+        textareaRef.current.disabled = true // Disable immediately with ref
+      }
+
+      setTimeout(() => {
+        setUserMessage('')
+        sendMessageToBackend(message)
+      }, 0)
     }
   }
-
   return (
     <div className="w-full flex flex-col px-4 md:px-6 lg:px-8 ">
       <div className="flex flex-col h-screen w-full bg-background ">
@@ -324,17 +356,8 @@ export default function ChatPage() {
               }
             }}
             disabled={!activeAgent || isStreaming}
+            ref={textareaRef}
           />
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!activeAgent || isStreaming}
-            onClick={() => {
-              sendMessage(userMessage)
-            }}
-          >
-            Send
-          </Button>
         </footer>
       </div>
     </div>
