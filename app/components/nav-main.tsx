@@ -215,6 +215,7 @@ export function NavMain() {
           )
         })}
       </SidebarMenu>
+      <Separator />
     </SidebarGroup>
   )
 }

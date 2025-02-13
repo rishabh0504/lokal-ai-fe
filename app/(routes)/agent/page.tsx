@@ -46,6 +46,7 @@ import {
 } from '@/components/ui/table'
 import type { NextPage } from 'next/types'
 import { useDispatch, useSelector } from 'react-redux'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 const AgentPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -122,19 +123,52 @@ const AgentPage: NextPage = () => {
         cell: ({ row }) => <div className="capitalize">{row.getValue('name')}</div>,
       },
       {
-        accessorKey: 'llmModelId',
+        accessorKey: 'description',
         header: ({ column }) => {
           return (
             <Button
               variant="ghost"
               onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             >
-              Model
-              <ArrowUpDown />
+              Description
+              <ArrowUpDown className="h-4 w-4" />
             </Button>
           )
         },
-        cell: ({ row }) => <div className="lowercase">{row.getValue('llmModelId')}</div>,
+        cell: ({ row }) => {
+          const description = String(row.getValue('description'))
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="lowercase overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px] group cursor-pointer">
+                    {description}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="w-64">{description}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )
+        },
+      },
+      {
+        accessorKey: 'prompt',
+        header: 'Prompt',
+        cell: ({ row }) => {
+          const prompt = String(row.getValue('prompt'))
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-right font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px] group cursor-pointer">
+                    {prompt}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="w-64">{prompt}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )
+        },
       },
       {
         accessorKey: 'created_at',
@@ -142,15 +176,6 @@ const AgentPage: NextPage = () => {
         cell: ({ row }) => {
           const createdAt = String(row.getValue('created_at'))
           const formatted = formatDateForTable(createdAt)
-          return <div className="text-right font-medium">{formatted}</div>
-        },
-      },
-      {
-        accessorKey: 'updated_at',
-        header: () => <div className="text-right">Updated Date</div>,
-        cell: ({ row }) => {
-          const updatedAt = String(row.getValue('updated_at'))
-          const formatted = formatDateForTable(updatedAt)
           return <div className="text-right font-medium">{formatted}</div>
         },
       },
@@ -228,7 +253,7 @@ const AgentPage: NextPage = () => {
     <div className="w-full flex flex-col px-4 md:px-6 lg:px-8">
       <div className="flex justify-between items-center py-4">
         <Label htmlFor="Agent" className="text-lg font-semibold tracking-tight text-primary">
-          Agent
+          Agents
         </Label>
         <Button variant="outline" onClick={() => setIsCreateAgentOpen(true)}>
           Create Agent
@@ -289,8 +314,10 @@ const AgentPage: NextPage = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      <Loading />
+                    <TableCell colSpan={columns.length} className="h-24">
+                      <div className="flex justify-center items-center h-full">
+                        <Loading />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
