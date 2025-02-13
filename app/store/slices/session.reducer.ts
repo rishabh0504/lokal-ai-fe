@@ -5,12 +5,14 @@ interface SessionState {
   items: SessionModel[]
   loading: boolean
   error: string | null
+  activeSession: SessionModel | null
 }
 
 const initialState: SessionState = {
   items: [],
   loading: false,
   error: null,
+  activeSession: null,
 }
 
 export const sessionSlice = createSlice({
@@ -24,6 +26,9 @@ export const sessionSlice = createSlice({
     },
     addSession: (state, action: PayloadAction<SessionModel>) => {
       state.items.push(action.payload)
+    },
+    setSession: (state, action: PayloadAction<SessionModel>) => {
+      state.activeSession = action.payload
     },
     updateSession: (state, action: PayloadAction<SessionModel>) => {
       const index = state.items.findIndex((item) => item.id === action.payload.id)
@@ -43,7 +48,14 @@ export const sessionSlice = createSlice({
   },
 })
 
-export const { setSessions, addSession, updateSession, deleteSession, setLoading, setError } =
-  sessionSlice.actions
+export const {
+  setSessions,
+  addSession,
+  updateSession,
+  deleteSession,
+  setLoading,
+  setError,
+  setSession,
+} = sessionSlice.actions
 
 export default sessionSlice.reducer

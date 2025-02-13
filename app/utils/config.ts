@@ -1,4 +1,3 @@
-import Chat from '@/app/(routes)/chat/components/chat'
 import { Brain, LucideIcon, SquareTerminal } from 'lucide-react'
 import { SidebarType } from './types'
 export type IconComponent = LucideIcon
@@ -21,21 +20,7 @@ export const SIDEBAR_CONFIG: SidebarType = {
       type: 'dashboard',
       iconName: 'history.png',
     },
-    {
-      title: 'Chat History',
-      url: '#',
-      icon: SquareTerminal,
-      isActive: false,
-      type: 'chat_history',
-      iconName: 'history.png',
-      items: [
-        {
-          name: 'New Chat',
-          url: '/chat',
-          component: Chat,
-        },
-      ],
-    },
+
     {
       title: 'Agents',
       url: '/agent',
@@ -51,6 +36,15 @@ export const SIDEBAR_CONFIG: SidebarType = {
       isActive: false,
       iconName: 'llm.png',
       type: 'llm_model',
+    },
+    {
+      title: 'Chat History',
+      url: '#',
+      icon: SquareTerminal,
+      isActive: false,
+      type: 'chat_history',
+      iconName: 'history.png',
+      items: [],
     },
   ],
 }
