@@ -22,7 +22,7 @@ interface DeleteLLMModelProps {
 }
 
 const DeleteLLMModel = ({ llmModelId, open, onClose }: DeleteLLMModelProps) => {
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.root}`
   const deleteLLMModelURL = llmModelId ? `${baseUrl}/${llmModelId}` : baseUrl
   const { loading, del: deleteLLMModel } = useFetch<LLMModel>(deleteLLMModelURL)
 

@@ -61,7 +61,7 @@ const LLMModelPage: NextPage = () => {
   const [refetchLLms, setRefetchLLms] = useState<boolean>(false)
 
   const dispatch = useDispatch<AppDispatch>()
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.get}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.root}`
 
   const llmModels = useSelector((state: RootState) => state.llms.items) || []
   const memoizedLLMModels = useMemo(() => llmModels, [llmModels])

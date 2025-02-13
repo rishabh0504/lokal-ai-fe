@@ -21,7 +21,7 @@ import { TeamSwitcher } from './team-switcher'
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const dispatch = useDispatch<AppDispatch>()
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.get}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.root}`
 
   const { get: getAgents } = useFetch<Agent[]>(baseUrl)
   useEffect(() => {
