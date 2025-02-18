@@ -50,28 +50,28 @@ interface CreateAgentProps {
 
 const getUpdatedParameters = (llmModel: Partial<LLMModel>): StringKeyStringValueType => {
   const updatedValue: StringKeyStringValueType = {}
+
   Object.keys(LLM_AGENT_PARAMETERS).forEach((key: string) => {
+    const keyMin = `${key}Min` as keyof LLMModel
+    const keyMax = `${key}Max` as keyof LLMModel
+    const keyDefault = `${key}Default` as keyof LLMModel
+
     let information: string = LLM_AGENT_PARAMETERS[key]
-    information = information.replace(
-      `{${key}Min}`,
-      llmModel[`${key}Min` as keyof LLMModel] !== undefined
-        ? String(llmModel[`${key}Min` as keyof LLMModel])
-        : '',
-    )
-    information = information.replace(
-      `{${key}Max}`,
-      llmModel[`${key}Max` as keyof LLMModel] !== undefined
-        ? String(llmModel[`${key}Max` as keyof LLMModel])
-        : '',
-    )
+
+    const minValue = llmModel[keyMin]
+    const maxValue = llmModel[keyMax]
+    const defaultValue = llmModel[keyDefault]
+
+    information = information.replace(`{${key}Min}`, minValue !== undefined ? String(minValue) : '')
+    information = information.replace(`{${key}Max}`, maxValue !== undefined ? String(maxValue) : '')
     information = information.replace(
       `{${key}Default}`,
-      llmModel[`${key}Default` as keyof LLMModel] !== undefined
-        ? String(llmModel[`${key}Default` as keyof LLMModel])
-        : '',
+      defaultValue !== undefined ? String(defaultValue) : '',
     )
+
     updatedValue[key] = information
   })
+
   return updatedValue
 }
 const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
@@ -124,12 +124,12 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
       description: z
         .string()
         .min(10, { message: 'Desciption must be 10 characters' })
-        .max(100, { message: 'Description cannot exceed 100 characters.' }),
+        .max(200, { message: 'Description cannot exceed 100 characters.' }),
 
       prompt: z
         .string()
         .min(100, { message: 'System Prompt must be 100 characters' })
-        .max(200, { message: 'System Prompt cannot exceed 200 characters.' }),
+        .max(500, { message: 'System Prompt cannot exceed 500 characters.' }),
     })
   }, [selectedLLM])
 
@@ -284,126 +284,136 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
         setValue('prompt', foundLLMModel.defaultPrompt)
       }
     }
-  }, [llmModelId, setValue])
+  }, [llmModelId, setValue, llms])
 
   const foundLLMModel: Partial<LLMModel> = llms.find((llm) => llm.id === llmModelId) || {}
 
   const UPDATED_LLM_AGENT_PARAMETERS: StringKeyStringValueType = getUpdatedParameters(foundLLMModel)
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[850px]">
+      <DialogContent className="sm:max-w-[950px]">
         <DialogHeader>
-          <DialogTitle>{agentId ? 'Update Agent' : 'Create Agent'}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg font-semibold">
+            {agentId ? 'Update Agent' : 'Create Agent'}
+          </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
             {agentId ? 'Modify the agent as you need.' : 'Add a new agent to your application.'}
           </DialogDescription>
         </DialogHeader>
-        <Separator className="my-2" />
 
-        <ScrollArea className="h-[70vh] w-full p-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-1">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Agent Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Agent Name"
-                          {...field}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="llmModelId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Model</FormLabel>
-                      {initialValuesLoaded ? (
-                        <Select
-                          onValueChange={(value) => {
-                            field.onChange(value)
-                          }}
-                          defaultValue={field.value}
-                          disabled={isUpdate || loading}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a model" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {modelOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div>Loading...</div>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Provide a short description"
-                          className="resize-none"
-                          {...field}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="prompt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>System Prompt</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Provide a system Prompt"
-                          className="resize-none"
-                          {...field}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+        <ScrollArea className="h-[70vh] w-full">
+          <div className="p-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Agent Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Agent Name"
+                            {...field}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="llmModelId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Model</FormLabel>
+                        {initialValuesLoaded ? (
+                          <Select
+                            onValueChange={(value) => {
+                              field.onChange(value)
+                            }}
+                            defaultValue={field.value}
+                            disabled={isUpdate || loading}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="bg-background border-input text-foreground shadow-sm">
+                                <SelectValue placeholder="Select a model" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {modelOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="text-muted-foreground">Loading...</div>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <Separator className="my-2" />
-              <h3 className="text-lg font-semibold">LLM Parameters</h3>
+                <div className="grid grid-cols-1 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Provide a short description"
+                            className="resize-none bg-background border-input text-foreground shadow-sm"
+                            {...field}
+                            disabled={loading || !initialValuesLoaded}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="prompt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">System Prompt</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Provide a system Prompt"
+                            className="resize-none bg-background border-input text-foreground shadow-sm"
+                            {...field}
+                            disabled={loading || !initialValuesLoaded}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="temperature"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <div className="flex">
+                <Separator />
+                <div className="space-y-2">
+                  <h3 className="text-md font-semibold">LLM Parameters</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Adjust these parameters to fine-tune the agent behavior.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="temperature"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">
                           Temperature
                           {llmModelId && (
                             <InfoHoverCard
@@ -413,37 +423,36 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                               }
                             />
                           )}
-                        </div>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Temperature"
-                          {...field}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value)
-                            field.onChange(isNaN(value) ? null : value)
-                          }}
-                          value={field.value === null ? '' : field.value}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      {selectedLLM && (
-                        <p className="text-sm text-muted-foreground">
-                          Range: {selectedLLM.temperatureMin} - {selectedLLM.temperatureMax}
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="top_p"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <div className="flex">
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Temperature"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value)
+                              field.onChange(isNaN(value) ? null : value)
+                            }}
+                            value={field.value === null ? '' : field.value}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        {selectedLLM && (
+                          <p className="text-sm text-muted-foreground">
+                            Range: {selectedLLM.temperatureMin} - {selectedLLM.temperatureMax}
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="top_p"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">
                           Top P
                           {llmModelId && (
                             <InfoHoverCard
@@ -453,37 +462,36 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                               }
                             />
                           )}
-                        </div>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Top P"
-                          {...field}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value)
-                            field.onChange(isNaN(value) ? null : value)
-                          }}
-                          value={field.value === null ? '' : field.value}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      {selectedLLM && (
-                        <p className="text-sm text-muted-foreground">
-                          Range: {selectedLLM.top_pMin} - {selectedLLM.top_pMax}
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="top_k"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <div className="flex">
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Top P"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value)
+                              field.onChange(isNaN(value) ? null : value)
+                            }}
+                            value={field.value === null ? '' : field.value}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        {selectedLLM && (
+                          <p className="text-sm text-muted-foreground">
+                            Range: {selectedLLM.top_pMin} - {selectedLLM.top_pMax}
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="top_k"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">
                           Top K
                           {llmModelId && (
                             <InfoHoverCard
@@ -493,40 +501,39 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                               }
                             />
                           )}
-                        </div>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Top K"
-                          {...field}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value)
-                            field.onChange(isNaN(value) ? null : value)
-                          }}
-                          value={field.value === null ? '' : field.value}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      {selectedLLM && (
-                        <p className="text-sm text-muted-foreground">
-                          Range: {selectedLLM.top_kMin} - {selectedLLM.top_kMax}
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
-              </div>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Top K"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value)
+                              field.onChange(isNaN(value) ? null : value)
+                            }}
+                            value={field.value === null ? '' : field.value}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        {selectedLLM && (
+                          <p className="text-sm text-muted-foreground">
+                            Range: {selectedLLM.top_kMin} - {selectedLLM.top_kMax}
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="max_tokens"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <div className="flex">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="max_tokens"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">
                           Max Tokens
                           {llmModelId && (
                             <InfoHoverCard
@@ -536,37 +543,36 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                               }
                             />
                           )}
-                        </div>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Max Tokens"
-                          {...field}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value)
-                            field.onChange(isNaN(value) ? null : value)
-                          }}
-                          value={field.value === null ? '' : field.value}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      {selectedLLM && (
-                        <p className="text-sm text-muted-foreground">
-                          Range: {selectedLLM.max_tokensMin} - {selectedLLM.max_tokensMax}
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="presence_penalty"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <div className="flex">
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Max Tokens"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value)
+                              field.onChange(isNaN(value) ? null : value)
+                            }}
+                            value={field.value === null ? '' : field.value}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        {selectedLLM && (
+                          <p className="text-sm text-muted-foreground">
+                            Range: {selectedLLM.max_tokensMin} - {selectedLLM.max_tokensMax}
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="presence_penalty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">
                           Presence Penalty
                           {llmModelId && (
                             <InfoHoverCard
@@ -576,38 +582,37 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                               }
                             />
                           )}
-                        </div>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Presence Penalty"
-                          {...field}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value)
-                            field.onChange(isNaN(value) ? null : value)
-                          }}
-                          value={field.value === null ? '' : field.value}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      {selectedLLM && (
-                        <p className="text-sm text-muted-foreground">
-                          Range: {selectedLLM.presence_penaltyMin} -{' '}
-                          {selectedLLM.presence_penaltyMax}
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="frequency_penalty"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <div className="flex">
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Presence Penalty"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value)
+                              field.onChange(isNaN(value) ? null : value)
+                            }}
+                            value={field.value === null ? '' : field.value}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        {selectedLLM && (
+                          <p className="text-sm text-muted-foreground">
+                            Range: {selectedLLM.presence_penaltyMin} -{' '}
+                            {selectedLLM.presence_penaltyMax}
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="frequency_penalty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">
                           Frequency Penalty
                           {llmModelId && (
                             <InfoHoverCard
@@ -617,41 +622,40 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                               }
                             />
                           )}
-                        </div>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Frequency Penalty"
-                          {...field}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value)
-                            field.onChange(isNaN(value) ? null : value)
-                          }}
-                          value={field.value === null ? '' : field.value}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      {selectedLLM && (
-                        <p className="text-sm text-muted-foreground">
-                          Range: {selectedLLM.frequency_penaltyMin} -{' '}
-                          {selectedLLM.frequency_penaltyMax}
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
-              </div>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Frequency Penalty"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value)
+                              field.onChange(isNaN(value) ? null : value)
+                            }}
+                            value={field.value === null ? '' : field.value}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        {selectedLLM && (
+                          <p className="text-sm text-muted-foreground">
+                            Range: {selectedLLM.frequency_penaltyMin} -{' '}
+                            {selectedLLM.frequency_penaltyMax}
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="repeat_penalty"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <div className="flex">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="repeat_penalty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">
                           Repeat Penalty
                           {llmModelId && (
                             <InfoHoverCard
@@ -661,43 +665,44 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                               }
                             />
                           )}
-                        </div>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Repeat Penalty"
-                          {...field}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value)
-                            field.onChange(isNaN(value) ? null : value)
-                          }}
-                          value={field.value === null ? '' : field.value}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      {selectedLLM && (
-                        <p className="text-sm text-muted-foreground">
-                          Range: {selectedLLM.repeat_penaltyMin} - {selectedLLM.repeat_penaltyMax}
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
-              </div>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Repeat Penalty"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value)
+                              field.onChange(isNaN(value) ? null : value)
+                            }}
+                            value={field.value === null ? '' : field.value}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        {selectedLLM && (
+                          <p className="text-sm text-muted-foreground">
+                            Range: {selectedLLM.repeat_penaltyMin} - {selectedLLM.repeat_penaltyMax}
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <div className="flex flex-row-reverse">
-                <Button type="submit" disabled={loading || !initialValuesLoaded}>
-                  {loading || !initialValuesLoaded
-                    ? 'Saving...'
-                    : isUpdate
-                      ? 'Update Agent'
-                      : 'Create Agent'}
-                </Button>
-              </div>
-            </form>
-          </Form>
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={loading || !initialValuesLoaded}>
+                    {loading || !initialValuesLoaded
+                      ? 'Saving...'
+                      : isUpdate
+                        ? 'Update Agent'
+                        : 'Create Agent'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
         </ScrollArea>
       </DialogContent>
     </Dialog>

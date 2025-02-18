@@ -205,7 +205,12 @@ export function NavMain() {
                 asChild
               >
                 <Link href={item.url}>
-                  {item.iconName && <CustomIcon src={`/icons/${item?.iconName}`} />}
+                  {item.iconName && (
+                    <CustomIcon
+                      src={`/icons/${item?.iconName}`}
+                      className={`${isParentActive ? 'bg-white text-primary-foreground  ' : 'text-primary-foreground '}`}
+                    />
+                  )}
                   <span>
                     <b>{item.title}</b>
                   </span>
