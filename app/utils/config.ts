@@ -107,4 +107,7 @@ export const API_CONFIG = {
   aiService: {
     root: 'ai-services/models',
   },
+  toolConfig: {
+    root: 'tools',
+  },
 }

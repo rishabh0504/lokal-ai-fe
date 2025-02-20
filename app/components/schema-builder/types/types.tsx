@@ -19,9 +19,11 @@ export interface SchemaField {
 }
 
 export interface Schema {
+  $schema?: string // JSON Schema Draft
   title?: string
-  type?: 'object'
+  type: 'object'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  properties?: Record<string, any>
-  required?: string[]
+  properties: Record<string, any>
+  required: string[]
+  additionalProperties?: boolean
 }

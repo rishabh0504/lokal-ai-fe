@@ -2,13 +2,15 @@ import { FieldType, Schema, SchemaField } from '../types/types'
 
 export function generateSchema(fields: SchemaField[]): Schema {
   const schema: Schema = {
+    $schema: 'http://json-schema.org/draft-07/schema#',
     type: 'object',
     properties: {},
     required: [],
+    additionalProperties: false, // Recommended for security
   }
 
   fields.forEach((field) => {
-    if (schema.properties && schema.required && schema.properties[field.name]) {
+    if (schema.properties && schema.required) {
       schema.properties[field.name] = generateFieldSchema(field)
       if (field.required) {
         schema.required.push(field.name)
@@ -18,21 +20,28 @@ export function generateSchema(fields: SchemaField[]): Schema {
 
   return schema
 }
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function generateFieldSchema(field: SchemaField): any {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fieldSchema: any = { type: field.type }
 
-  if (field.type === 'object' && field.children) {
+  if (field.type === 'object') {
+    fieldSchema.type = 'object'
     fieldSchema.properties = {}
     fieldSchema.required = []
-    field.children.forEach((child) => {
-      fieldSchema.properties[child.name] = generateFieldSchema(child)
-      if (child.required) {
-        fieldSchema.required.push(child.name)
-      }
-    })
-  } else if (field.type === 'array' && field.children) {
+    fieldSchema.additionalProperties = false // Recommended for security
+
+    if (field.children) {
+      field.children.forEach((child) => {
+        fieldSchema.properties[child.name] = generateFieldSchema(child)
+        if (child.required) {
+          fieldSchema.required.push(child.name)
+        }
+      })
+    }
+  } else if (field.type === 'array' && field.children && field.children.length > 0) {
+    fieldSchema.type = 'array'
     fieldSchema.items = generateFieldSchema(field.children[0])
   }
 
