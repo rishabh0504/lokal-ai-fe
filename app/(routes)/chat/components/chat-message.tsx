@@ -21,7 +21,6 @@ const ChatMessage: FC<ChatMessageProps> = ({
   avatarSrcOther = '/icons/bot.png',
 }) => {
   const isUser = sender === userIdentifier
-  console.log(sender, content, userIdentifier, isUser)
 
   return (
     <div

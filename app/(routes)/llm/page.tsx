@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/table'
 import type { NextPage } from 'next/types'
 import { useDispatch, useSelector } from 'react-redux'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 const LLMModelPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -103,7 +104,19 @@ const LLMModelPage: NextPage = () => {
       {
         accessorKey: 'description',
         header: 'Description',
-        cell: ({ row }) => <div>{row.getValue('description')}</div>,
+        cell: ({ row }) => {
+          const description = String(row.getValue('description'))
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>{description}</div>
+                </TooltipTrigger>
+                <TooltipContent className="w-64">{description}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )
+        },
       },
       {
         accessorKey: 'created_at',
@@ -277,8 +290,10 @@ const LLMModelPage: NextPage = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      <Loading />
+                    <TableCell colSpan={columns.length} className="h-24">
+                      <div className="flex justify-center items-center h-full">
+                        <Loading />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (

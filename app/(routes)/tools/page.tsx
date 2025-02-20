@@ -1,4 +1,5 @@
 'use client'
+
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -11,14 +12,11 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
+import { ChevronDown, MoreHorizontal } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-import CreateAgent from '@/app/(routes)/agent/components/create-agent'
-import DeleteAgent from '@/app/(routes)/agent/components/delete-agent'
-import { Agent } from '@/app/(routes)/agent/types/type'
 import useFetch from '@/app/hooks/useFetch'
-import { setAgents } from '@/app/store/slices/agent.reducer'
+import { setToolConfig } from '@/app/store/slices/tool-config.reducer'
 import { AppDispatch, RootState } from '@/app/store/store'
 import { API_CONFIG } from '@/app/utils/config'
 import { formatDateForTable } from '@/app/utils/util-service'
@@ -44,165 +42,146 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { NextPage } from 'next/types'
 import { useDispatch, useSelector } from 'react-redux'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { ToolConfigModal } from './components/create-edit-tool-model'
+import { ToolConfig } from './dto/types'
+import DeleteToolConfig from './components/delete-tools'
 
-const AgentPage: NextPage = () => {
+const ToolsConfigPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
-  const agents = useSelector((state: RootState) => state.agents.items) || []
 
-  const [agentIdToBeEdited, setAgentIdToBeEdited] = useState<string | undefined>(undefined)
-  const [isCreateAgentOpen, setIsCreateAgentOpen] = useState(false)
-  const [agentIdToBeDeleted, setAgentIdToBeDeleted] = useState<string | undefined>(undefined)
-  const [isDeleteAgentOpen, setIsDeleteAgentOpen] = useState(false)
+  const [toolsConfigToBeEdited, setToolsConfigToBeEdited] = useState<string | undefined>(undefined)
+  const [toolConfigIdToBeDeleted, setToolConfigIdToBeDeleted] = useState<string | undefined>(
+    undefined,
+  )
+  const [isCreateToolConfigModelOpen, setIsCreateToolConfigModalOpen] = useState(false)
 
-  const [refetchAgent, setRefetchAgent] = useState<boolean>(false)
+  const [isDeleteToolConfigModelOpen, setIsDeleteToolConfigModelOpen] = useState(false)
+  const [refetchToolConfig, setRefetchToolConfig] = useState<boolean>(false)
+
   const dispatch = useDispatch<AppDispatch>()
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.root}`
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.toolConfig.root}`
 
-  const { loading, get: getAgents } = useFetch<Agent[]>(baseUrl)
+  const toolConfigs = useSelector((state: RootState) => state.toolConfigs.items) || []
+  const memoizedToolConfig = useMemo(() => toolConfigs, [toolConfigs])
 
-  const getAgentList = async () => {
-    const agents = await getAgents(baseUrl)
-    if (agents && Array.isArray(agents)) {
-      dispatch(setAgents(agents))
+  const { get: getToolsConfig } = useFetch<ToolConfig[]>(baseUrl)
+
+  const getToolsConfigList = async () => {
+    const toolsConfigList = await getToolsConfig(baseUrl)
+    if (toolsConfigList && Array.isArray(toolsConfigList)) {
+      dispatch(setToolConfig(toolsConfigList))
     }
   }
 
   useEffect(() => {
-    const fetchAgents = async () => {
-      getAgentList()
-      setRefetchAgent(false)
+    const fetchToolsConfig = async () => {
+      getToolsConfigList()
     }
-    fetchAgents()
-  }, [dispatch, getAgents])
+    fetchToolsConfig()
+  }, [dispatch, getToolsConfig])
 
-  useEffect(() => {
-    const fetchAgents = async () => {
-      if (refetchAgent) {
-        getAgentList()
-        setRefetchAgent(false)
-      }
-    }
-    fetchAgents()
-  }, [refetchAgent])
-
-  const memoizedAgents = useMemo(() => agents, [agents])
-
-  const columns: ColumnDef<Agent>[] = useMemo(
+  const columns: ColumnDef<ToolConfig>[] = useMemo(
     () => [
       {
         id: 'select',
         header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && 'indeterminate')
-            }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-          />
+          <div className="text-center">
+            <Checkbox
+              checked={
+                table.getIsAllPageRowsSelected() ||
+                (table.getIsSomePageRowsSelected() && 'indeterminate')
+              }
+              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+              aria-label="Select all"
+            />
+          </div>
         ),
         cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
+          <div className="text-center">
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+            />
+          </div>
         ),
         enableSorting: false,
         enableHiding: false,
       },
       {
         accessorKey: 'name',
-        header: 'Agent name',
-        cell: ({ row }) => <div className="capitalize">{row.getValue('name')}</div>,
+        header: () => <div className="text-center font-medium">Name</div>,
+        cell: ({ row }) => <div className="text-center capitalize">{row.getValue('name')}</div>,
       },
       {
         accessorKey: 'description',
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-              Description
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          )
-        },
+        header: () => <div className="text-center font-medium">Description</div>,
         cell: ({ row }) => {
           const description = String(row.getValue('description'))
           return (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="lowercase overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px] group cursor-pointer">
-                    {description}
+                  <div className="p-4 lowercase overflow-hidden text-ellipsis whitespace-nowrap  group cursor-pointer text-center">
+                    {description.substring(0, 10).concat('...')}
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="w-64">{description}</TooltipContent>
+                <TooltipContent className="w-64 p-4">{description}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )
         },
       },
       {
-        accessorKey: 'prompt',
-        header: 'Prompt',
+        accessorKey: 'createdAt',
+        header: () => <div className="text-center font-medium">Created Date</div>,
         cell: ({ row }) => {
-          const prompt = String(row.getValue('prompt'))
-          return (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="text-right font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px] group cursor-pointer">
-                    {prompt}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="w-64">{prompt}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )
-        },
-      },
-      {
-        accessorKey: 'created_at',
-        header: () => <div className="text-right">Created Date</div>,
-        cell: ({ row }) => {
-          const createdAt = String(row.getValue('created_at'))
+          const createdAt = String(row.getValue('createdAt'))
           const formatted = formatDateForTable(createdAt)
-          return <div className="text-right font-medium">{formatted}</div>
+          return <div className="text-center font-medium">{formatted}</div>
+        },
+      },
+      {
+        accessorKey: 'updatedAt',
+        header: () => <div className="text-center font-medium">Updated Date</div>,
+        cell: ({ row }) => {
+          const updatedAt = String(row.getValue('updatedAt'))
+          const formatted = formatDateForTable(updatedAt)
+          return <div className="text-center font-medium">{formatted}</div>
         },
       },
       {
         id: 'actions',
         enableHiding: false,
         cell: ({ row }) => {
-          const agent = row.original
+          const toolItem = row.original
 
           return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleEditAgent(agent.id)}>
-                  Edit Agent
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => deleteAgent(agent.id)}>
-                  Delete Agent
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="text-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleEditToolsConfig(toolItem?.id)}>
+                    Edit Tool
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => deleteToolConfig(toolItem?.id)}>
+                    Delete Tool
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           )
         },
       },
@@ -210,8 +189,8 @@ const AgentPage: NextPage = () => {
     [],
   )
 
-  const table = useReactTable<Agent>({
-    data: memoizedAgents,
+  const table = useReactTable<ToolConfig>({
+    data: memoizedToolConfig,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -229,34 +208,72 @@ const AgentPage: NextPage = () => {
     },
   })
 
-  const handleEditAgent = (agentId: string) => {
-    setAgentIdToBeEdited(agentId)
-    setIsCreateAgentOpen(true)
+  const { loading, get: getTools } = useFetch<ToolConfig[]>(baseUrl)
+
+  const getToolConfig = async () => {
+    const toolsConfigs = await getTools(baseUrl)
+    if (toolsConfigs && Array.isArray(toolsConfigs)) {
+      dispatch(setToolConfig(toolsConfigs))
+    }
   }
 
-  const handleCreateAgentClose = () => {
-    setIsCreateAgentOpen(false)
-    setAgentIdToBeEdited(undefined)
-    setRefetchAgent(true)
+  useEffect(() => {
+    const fetchToolsConfigItems = async () => {
+      if (refetchToolConfig) {
+        getToolConfig()
+        setRefetchToolConfig(false)
+      }
+    }
+    fetchToolsConfigItems()
+  }, [refetchToolConfig])
+
+  useEffect(() => {
+    const fetchToolsConfigItems = async () => {
+      getToolConfig()
+      setRefetchToolConfig(false)
+    }
+    fetchToolsConfigItems()
+  }, [dispatch, getTools])
+
+  // const handleEditToolsConfigModel = (toolsConfigId: string) => {
+  //   setAgentConfigToBeEdited(llmModelId)
+  //   setIsCreateLLMModelOpen(true)
+  // }
+
+  // const handleCreateLLMModelClose = () => {
+  //   setIsCreateLLMModelOpen(false)
+  //   setAgentConfigToBeEdited(undefined)
+  //   setRefetchToolConfig(true)
+  // }
+
+  const deleteToolConfig = (toolConfigId: string | undefined) => {
+    if (toolConfigId) {
+      setToolConfigIdToBeDeleted(toolConfigId)
+      setIsDeleteToolConfigModelOpen(true)
+    }
   }
-  const deleteAgent = (agentId: string) => {
-    setAgentIdToBeDeleted(agentId)
-    setIsDeleteAgentOpen(true)
+
+  const handleDeleteToolConfigClose = () => {
+    setIsDeleteToolConfigModelOpen(false)
+    setToolConfigIdToBeDeleted(undefined)
+    setRefetchToolConfig(true)
   }
-  const handleDeleteAgentClose = () => {
-    setIsDeleteAgentOpen(false)
-    setAgentIdToBeDeleted(undefined)
-    setRefetchAgent(true)
+
+  const handleEditToolsConfig = (toolsConfigId: string | undefined) => {
+    if (toolsConfigId) {
+      setToolsConfigToBeEdited(toolsConfigId)
+      setIsCreateToolConfigModalOpen(true)
+    }
   }
 
   return (
     <div className="w-full flex flex-col px-4 md:px-6 lg:px-8">
       <div className="flex justify-between items-center py-4">
-        <Label htmlFor="Agent" className="text-lg font-semibold tracking-tight text-primary">
-          Agents
+        <Label htmlFor="ToolConfig" className="text-lg font-semibold tracking-tight text-primary">
+          Tools
         </Label>
-        <Button variant="outline" onClick={() => setIsCreateAgentOpen(true)}>
-          Create Agent
+        <Button variant="outline" onClick={() => setIsCreateToolConfigModalOpen(true)}>
+          Create Tool
         </Button>
       </div>
       <div className="flex flex-col gap-4">
@@ -264,7 +281,7 @@ const AgentPage: NextPage = () => {
         <div className="w-full">
           <div className="flex items-center py-4">
             <Input
-              placeholder="Filter agent..."
+              placeholder="Filter Tools..."
               value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
               onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
               className="max-w-sm"
@@ -301,7 +318,7 @@ const AgentPage: NextPage = () => {
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
                       return (
-                        <TableHead key={header.id}>
+                        <TableHead key={header.id} className="text-center">
                           {header.isPlaceholder
                             ? null
                             : flexRender(header.column.columnDef.header, header.getContext())}
@@ -370,23 +387,25 @@ const AgentPage: NextPage = () => {
           </div>
         </div>
       </div>
-      {isCreateAgentOpen && (
-        <CreateAgent
-          agentId={agentIdToBeEdited}
-          open={isCreateAgentOpen}
-          onClose={handleCreateAgentClose}
+      {isCreateToolConfigModelOpen && (
+        <ToolConfigModal
+          open={isCreateToolConfigModelOpen}
+          onClose={() => {
+            setIsCreateToolConfigModalOpen(false)
+          }}
+          toolConfigId={toolsConfigToBeEdited}
         />
       )}
 
-      {isDeleteAgentOpen && (
-        <DeleteAgent
-          agentId={agentIdToBeDeleted}
-          open={isDeleteAgentOpen}
-          onClose={handleDeleteAgentClose}
+      {isDeleteToolConfigModelOpen && (
+        <DeleteToolConfig
+          toolConfigId={toolConfigIdToBeDeleted}
+          open={isDeleteToolConfigModelOpen}
+          onClose={handleDeleteToolConfigClose}
         />
       )}
     </div>
   )
 }
 
-export default AgentPage
+export default ToolsConfigPage

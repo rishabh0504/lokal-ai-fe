@@ -286,724 +286,678 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
   }
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[850px]">
+      <DialogContent className="sm:max-w-[950px]">
         <DialogHeader>
-          <DialogTitle>{llmModelId ? 'Update LLM Model' : 'Create LLM Model'}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg font-semibold">
+            {llmModelId ? 'Update LLM Model' : 'Create LLM Model'}
+          </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
             {llmModelId
               ? 'Modify the LLM Model as you need.'
               : 'Add a new LLM Model to your application.'}
           </DialogDescription>
-          <DialogDescription>
-            {`( Make sure the parameters are as per the model selected)`}
+          <DialogDescription className="text-sm text-muted-foreground">
+            (Make sure the parameters are as per the model selected)
           </DialogDescription>
         </DialogHeader>
-        <Separator className="my-2" />
 
-        <ScrollArea className="h-[60vh] w-full m-2 p-3">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="LLM Model Name"
-                          {...field}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="modelName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Model Name</FormLabel>
-                      <Select
-                        disabled={isUpdate || loading || !initialValuesLoaded}
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+        <ScrollArea className="h-[70vh] w-full">
+          <div className="p-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Name</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select ollama Model" />
-                          </SelectTrigger>
+                          <Input
+                            placeholder="LLM Model Name"
+                            {...field}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
                         </FormControl>
-                        <SelectContent>
-                          {ollamaModels.map((model) => (
-                            <SelectItem key={model.name} value={model.name}>
-                              {model.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="modelName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Model Name</FormLabel>
+                        <Select
+                          disabled={isUpdate || loading || !initialValuesLoaded}
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-background border-input text-foreground shadow-sm">
+                              <SelectValue placeholder="Select ollama Model" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {ollamaModels.map((model) => (
+                              <SelectItem key={model.name} value={model.name}>
+                                {model.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="version"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Version</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="LLM Model Version"
+                            {...field}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Provide a short description"
+                            className="resize-none bg-background border-input text-foreground shadow-sm"
+                            {...field}
+                            disabled={loading || !initialValuesLoaded}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="defaultPrompt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Default System Prompt</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Provide a system prompt"
+                            className="resize-none bg-background border-input text-foreground shadow-sm"
+                            {...field}
+                            disabled={loading || !initialValuesLoaded}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <Separator />
+                <div className="space-y-2">
+                  <h3 className="text-md font-semibold">Parameters</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Adjust these parameters to fine-tune the LLM Model behavior.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="temperatureMin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Temperature Min</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Min"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="temperatureMax"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Temperature Max</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Max"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="temperatureDefault"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Temperature Default</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Default"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="top_pMin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Top P Min</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Min"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="top_pMax"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Top P Max</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Max"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="top_pDefault"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Top P Default</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Default"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="top_kMin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Top K Min</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Min"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseInt(e.target.value, 10)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="top_kMax"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Top K Max</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Max"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseInt(e.target.value, 10)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="top_kDefault"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Top K Default</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Default"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseInt(e.target.value, 10)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="max_tokensMin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Max Tokens Min</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Min"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseInt(e.target.value, 10)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="max_tokensMax"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Max Tokens Max</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Max"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseInt(e.target.value, 10)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="max_tokensDefault"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Max Tokens Default</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Default"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseInt(e.target.value, 10)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="presence_penaltyMin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Presence Penalty Min</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Min"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="presence_penaltyMax"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Presence Penalty Max</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Max"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="presence_penaltyDefault"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Presence Penalty Default</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Default"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="frequency_penaltyMin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Frequency Penalty Min</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Min"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="frequency_penaltyMax"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Frequency Penalty Max</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Max"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="frequency_penaltyDefault"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Frequency Penalty Default</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Default"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="repeat_penaltyMin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Repeat Penalty Min</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Min"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="repeat_penaltyMax"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Repeat Penalty Max</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Max"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="repeat_penaltyDefault"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right">Repeat Penalty Default</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Default"
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const parsedValue = parseFloat(e.target.value)
+                              field.onChange(isNaN(parsedValue) ? undefined : parsedValue)
+                            }}
+                            disabled={loading || !initialValuesLoaded}
+                            className="bg-background border-input text-foreground shadow-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
-                  name="version"
+                  name="stop_sequences"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Version</FormLabel>
+                      <FormLabel className="text-right">Stop Sequences</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="LLM Model Version"
+                          placeholder='JSON Array of strings, example: ["\\n\\n", "."]'
                           {...field}
                           disabled={loading || !initialValuesLoaded}
+                          className="bg-background border-input text-foreground shadow-sm"
                         />
                       </FormControl>
                       <FormMessage />
+                      <p className="text-sm text-muted-foreground">
+                        (JSON array of strings. Example:{' '}
+                        <code>[&quot;\\n\\n&quot;, &quot;.&quot;]</code>)
+                      </p>
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Provide a short description"
-                          className="resize-none"
-                          {...field}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="defaultPrompt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Default System Prompt</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Provide a short description"
-                          className="resize-none w-full"
-                          {...field}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
-              <Separator className="my-2" />
-              <h3 className="text-lg font-semibold">Parameters</h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="temperatureMin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Temperature Min</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Min"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="temperatureMax"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Temperature Max</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Max"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="temperatureDefault"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Temperature Default</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Default"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="top_pMin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Top P Min</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Min"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="top_pMax"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Top P Max</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Max"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="top_pDefault"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Top P Default</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Default"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="top_kMin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Top K Min</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Min"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseInt(e.target.value, 10)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="top_kMax"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Top K Max</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Max"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="top_kDefault"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Top K Default</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Default"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseInt(e.target.value, 10)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="max_tokensMin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Max Tokens Min</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Min"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseInt(e.target.value, 10)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="max_tokensMax"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Max Tokens Max</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Max"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseInt(e.target.value, 10)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="max_tokensDefault"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Max Tokens Default</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Default"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseInt(e.target.value, 10)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="presence_penaltyMin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Presence Penalty Min</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Min"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="presence_penaltyMax"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Presence Penalty Max</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Max"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="presence_penaltyDefault"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Presence Penalty Default</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Default"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="frequency_penaltyMin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Frequency Penalty Min</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Min"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="frequency_penaltyMax"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Frequency Penalty Max</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Max"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="frequency_penaltyDefault"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Frequency Penalty Default</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Default"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="repeat_penaltyMin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Repeat Penalty Min</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Min"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="repeat_penaltyMax"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Repeat Penalty Max</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Max"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="repeat_penaltyDefault"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Repeat Penalty Default</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Default"
-                          value={
-                            field.value === null || field.value === undefined
-                              ? ''
-                              : field.value.toString()
-                          }
-                          onChange={(e) => {
-                            const parsedValue = parseFloat(e.target.value)
-                            field.onChange(isNaN(parsedValue) ? 0 : parsedValue)
-                          }}
-                          disabled={loading || !initialValuesLoaded}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="stop_sequences"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Stop Sequences (JSON Array of Strings)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='JSON Array of strings, example: ["\\n\\n", "."]'
-                        {...field}
-                        disabled={loading || !initialValuesLoaded}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex flex-row-reverse mx-2">
-                <Button type="submit" disabled={loading || !initialValuesLoaded}>
-                  {loading || !initialValuesLoaded
-                    ? 'Saving...'
-                    : isUpdate
-                      ? 'Update LLM Model'
-                      : 'Create LLM Model'}
-                </Button>
-              </div>
-            </form>
-          </Form>
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={loading || !initialValuesLoaded}>
+                    {loading || !initialValuesLoaded
+                      ? 'Saving...'
+                      : isUpdate
+                        ? 'Update LLM Model'
+                        : 'Create LLM Model'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
         </ScrollArea>
       </DialogContent>
     </Dialog>

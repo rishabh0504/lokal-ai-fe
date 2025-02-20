@@ -1,4 +1,4 @@
-import { Brain, LucideIcon, SquareTerminal } from 'lucide-react'
+import { Brain, Hammer, LucideIcon, SquareTerminal } from 'lucide-react'
 import { SidebarType } from './types'
 export type IconComponent = LucideIcon
 
@@ -33,6 +33,14 @@ export const SIDEBAR_CONFIG: SidebarType = {
       title: 'LLM Models',
       url: '/llm',
       icon: SquareTerminal,
+      isActive: false,
+      iconName: 'llm.png',
+      type: 'llm_model',
+    },
+    {
+      title: 'Tools',
+      url: '/tools',
+      icon: Hammer,
       isActive: false,
       iconName: 'llm.png',
       type: 'llm_model',
@@ -98,5 +106,8 @@ export const API_CONFIG = {
   },
   aiService: {
     root: 'ai-services/models',
+  },
+  toolConfig: {
+    root: 'tools',
   },
 }
