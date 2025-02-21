@@ -16,4 +16,5 @@ export type Agent = {
   updated_at: string
   description: string
   prompt: string
+  toolIds?: string[]
 }
