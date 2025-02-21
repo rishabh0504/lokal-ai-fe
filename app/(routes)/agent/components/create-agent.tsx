@@ -2,6 +2,7 @@
 
 import { Agent } from '@/app/(routes)/agent/types/type'
 import { LLMModel } from '@/app/(routes)/llm/types/type'
+import { InfoCard } from '@/app/components/info-card'
 import InfoHoverCard from '@/app/components/info-card-hover'
 import useFetch from '@/app/hooks/useFetch'
 import { RootState } from '@/app/store/store'
@@ -25,6 +26,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { MultiSelect } from '@/components/ui/multi-select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
@@ -41,11 +43,17 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSelector } from 'react-redux'
 import * as z from 'zod'
+import { ToolConfig } from '../../tools/dto/types'
 
 interface CreateAgentProps {
   agentId?: string
   open: boolean
   onClose: () => void
+}
+
+interface Option {
+  value: string
+  label: string
 }
 
 const getUpdatedParameters = (llmModel: Partial<LLMModel>): StringKeyStringValueType => {
@@ -75,11 +83,16 @@ const getUpdatedParameters = (llmModel: Partial<LLMModel>): StringKeyStringValue
   return updatedValue
 }
 const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
+  const [selectedTools, setSelectedFrameworks] = useState<string[]>([])
+  const handleFrameworkChange = (newValues: string[]) => {
+    setSelectedFrameworks(newValues)
+  }
   const [isUpdate, setIsUpdate] = useState(false)
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false)
   const [selectedLLM, setSelectedLLM] = useState<LLMModel | null>(null)
 
   const llms = useSelector((state: RootState) => state.llms.items) || []
+  const tools = useSelector((state: RootState) => state.toolConfigs.items) || []
 
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.agents.root}`
   const agentUrl = agentId ? `${baseUrl}/${agentId}` : baseUrl
@@ -124,12 +137,12 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
       description: z
         .string()
         .min(10, { message: 'Desciption must be 10 characters' })
-        .max(200, { message: 'Description cannot exceed 100 characters.' }),
+        .max(1000, { message: 'Description cannot exceed 1000 characters.' }),
 
       prompt: z
         .string()
         .min(100, { message: 'System Prompt must be 100 characters' })
-        .max(500, { message: 'System Prompt cannot exceed 500 characters.' }),
+        .max(1000, { message: 'System Prompt cannot exceed 1000 characters.' }),
     })
   }, [selectedLLM])
 
@@ -235,6 +248,7 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
         repeat_penalty: values.repeat_penalty,
         description: values.description,
         prompt: values.prompt,
+        toolIds: selectedTools,
       }
 
       const apiCall = isUpdate ? put : post
@@ -289,6 +303,10 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
   const foundLLMModel: Partial<LLMModel> = llms.find((llm) => llm.id === llmModelId) || {}
 
   const UPDATED_LLM_AGENT_PARAMETERS: StringKeyStringValueType = getUpdatedParameters(foundLLMModel)
+
+  const toolOptions =
+    tools.map((each: ToolConfig) => ({ label: each?.name || '', value: each?.id || '' })) || []
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[950px]">
@@ -302,6 +320,8 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
         </DialogHeader>
 
         <ScrollArea className="h-[70vh] w-full">
+          <h1 className="text-2xl font-semibold mb-4">Framework Selection</h1>
+
           <div className="p-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -358,6 +378,35 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
                       </FormItem>
                     )}
                   />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="w-full">
+                    <FormLabel className="text-right">Select tool</FormLabel>
+                    <MultiSelect<Option>
+                      options={toolOptions}
+                      value={selectedTools}
+                      onChange={handleFrameworkChange}
+                      placeholder="Select your favorite tools..."
+                      label="Select tools"
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="w-full">
+                    <FormLabel className="text-right">Selected tool</FormLabel>
+
+                    {selectedTools.length > 0 ? (
+                      <div className="">
+                        <InfoCard
+                          content={toolOptions
+                            .filter((option) => selectedTools.includes(option.value))
+                            .map((option) => option.label)
+                            .join(', ')}
+                        />
+                      </div>
+                    ) : (
+                      <InfoCard content={'No tool selected'} />
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">

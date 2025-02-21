@@ -1,43 +1,46 @@
-# Use the official Node.js 18 image as a base
+# Use the official Node.js image as the base image
 FROM node:18-alpine AS builder
 
 # Set the working directory in the container
 WORKDIR /app
 
+# Create a non-root user and group
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 # Copy package.json and package-lock.json to the container
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --omit=dev
+# Install dependencies using package-lock.json
+RUN npm ci --only=production
 
-# Copy all project files to the container
+# Copy the rest of the application code
 COPY . .
 
-# Build the Next.js app
+# Build the Next.js application
 RUN npm run build
 
-# Stage 2: Production image
-FROM node:18-alpine
+# Use the official Nginx image for serving the application
+FROM nginx:alpine AS production
 
-# Set the working directory
-WORKDIR /app
+# Create a non-root user and group
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Create a non-root user to run the app
-RUN addgroup -g 1001 appuser && \
-    adduser -u 1001 -G appuser -h /app -s /bin/sh -D appuser
+# Copy the built application from the builder stage
+COPY --from=builder /app/.next /usr/share/nginx/html/.next
+COPY --from=builder /app/public /usr/share/nginx/html/public
+COPY --from=builder /app/_next /usr/share/nginx/html/_next
 
-# Copy the necessary files from the builder stage
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+# Copy the Nginx configuration file
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Set the correct permissions
-RUN chown -R appuser:appuser /app
+# Set the correct ownership for the Nginx directories
+RUN chown -R appuser:appgroup /usr/share/nginx/html
+
+# Expose port 80
+EXPOSE 80
+
+# Switch to the non-root user
 USER appuser
 
-# Expose the port your app will run on
-EXPOSE 3000
-
-# Command to start your Next.js app
-CMD ["npm", "start"]
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
