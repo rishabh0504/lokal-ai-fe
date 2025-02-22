@@ -214,19 +214,20 @@ export function FieldBuilder({ field, onUpdate, onRemove }: FieldBuilderProps) {
               </div>
               <div className="ml-4 mt-2">
                 {field.children?.map((child, index) => (
-                  //eslint-disable-next-line react/jsx-key
-                  <FieldBuilder
-                    field={child}
-                    onUpdate={(updatedChild) => {
-                      const newChildren = [...(field.children || [])]
-                      newChildren[index] = updatedChild
-                      onUpdate({ ...field, children: newChildren })
-                    }}
-                    onRemove={() => {
-                      const newChildren = field.children?.filter((_, i) => i !== index)
-                      onUpdate({ ...field, children: newChildren })
-                    }}
-                  />
+                  <>
+                    <FieldBuilder
+                      field={child}
+                      onUpdate={(updatedChild) => {
+                        const newChildren = [...(field.children || [])]
+                        newChildren[index] = updatedChild
+                        onUpdate({ ...field, children: newChildren })
+                      }}
+                      onRemove={() => {
+                        const newChildren = field.children?.filter((_, i) => i !== index)
+                        onUpdate({ ...field, children: newChildren })
+                      }}
+                    />
+                  </>
                 ))}
               </div>
             </div>

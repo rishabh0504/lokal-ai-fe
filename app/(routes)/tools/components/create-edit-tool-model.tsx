@@ -44,7 +44,6 @@ import { useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import * as z from 'zod'
 import { ToolConfig } from '../dto/types'
-
 // Define Zod Schemas for Enums
 const ExecutionTypeSchema = z.enum(['REST_API', 'PYTHON_FUNCTION', 'JAVASCRIPT_FUNCTION', 'CUSTOM'])
 
@@ -140,8 +139,6 @@ const toolConfigSchema = z
     },
   )
 
-type ToolConfigValues = z.infer<typeof toolConfigSchema>
-
 interface ToolConfigModalProps {
   open: boolean
   onClose: () => void
@@ -149,8 +146,8 @@ interface ToolConfigModalProps {
 }
 
 export function ToolConfigModal({ open, onClose, toolConfigId }: ToolConfigModalProps) {
-  const [inputSchemaFields, setInputSchemaFields] = useState<SchemaField[]>([])
-  const [outputSchemaFields, setOutputSchemaFields] = useState<SchemaField[]>([])
+  const [initialInputSchema, setInitialInputSchema] = useState<Schema | undefined>(undefined) // Changed type
+  const [initialOutputSchema, setInitialOutputSchema] = useState<Schema | undefined>(undefined) // Changed type
   const [isUpdate, setIsUpdate] = useState(false)
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false)
   const [isInputSchemaBuilderOpen, setIsInputSchemaBuilderOpen] = useState<boolean>(false)
@@ -163,7 +160,7 @@ export function ToolConfigModal({ open, onClose, toolConfigId }: ToolConfigModal
 
   const dispatch = useDispatch<AppDispatch>()
 
-  const form = useForm<ToolConfigValues>({
+  const form = useForm<ToolConfig>({
     resolver: zodResolver(toolConfigSchema),
     defaultValues: {
       name: '',
@@ -189,22 +186,37 @@ export function ToolConfigModal({ open, onClose, toolConfigId }: ToolConfigModal
           const fetchedToolConfig = await get(toolConfigUrl)
           if (fetchedToolConfig) {
             Object.keys(fetchedToolConfig).forEach((key: string) => {
-              setValue(
-                key as keyof ToolConfigValues,
-                fetchedToolConfig[key as keyof ToolConfigValues],
-              )
+              setValue(key as keyof ToolConfig, fetchedToolConfig[key as keyof ToolConfig])
             })
+
+            // Parse input schema specifically
             try {
-              setInputSchemaFields(JSON.parse(fetchedToolConfig.input_schema))
+              const parsedInput = JSON.parse(fetchedToolConfig.input_schema)
+              if (typeof parsedInput === 'object' && parsedInput !== null) {
+                setInitialInputSchema(parsedInput as Schema) // Explicitly cast to Schema
+              } else {
+                console.warn('Input schema is not an object, setting to undefined')
+                setInitialInputSchema(undefined)
+              }
             } catch (e) {
               console.error('Error parsing input schema', e)
+              setInitialInputSchema(undefined) // Set to undefined on error
             }
 
+            // Parse output schema specifically
             try {
-              setOutputSchemaFields(JSON.parse(fetchedToolConfig.output_schema))
+              const parsedOutput = JSON.parse(fetchedToolConfig.output_schema)
+              if (typeof parsedOutput === 'object' && parsedOutput !== null) {
+                setInitialOutputSchema(parsedOutput as Schema) // Explicitly cast to Schema
+              } else {
+                console.warn('Output schema is not an object, setting to undefined')
+                setInitialOutputSchema(undefined)
+              }
             } catch (e) {
               console.error('Error parsing output schema', e)
+              setInitialOutputSchema(undefined) // Set to undefined on error
             }
+
             setIsUpdate(true)
             setInitialValuesLoaded(true)
           } else {
@@ -221,17 +233,19 @@ export function ToolConfigModal({ open, onClose, toolConfigId }: ToolConfigModal
   }, [toolConfigId, get, setValue, toolConfigUrl])
 
   const handleInputSchemaChange = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (schema: Schema, fields: SchemaField[]) => {
       setValue('input_schema', JSON.stringify(schema, null, 2))
-      setInputSchemaFields(fields)
+      setInitialInputSchema(schema as Schema)
     },
     [setValue],
   )
 
   const handleOutputSchemaChange = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (schema: Schema, fields: SchemaField[]) => {
       setValue('output_schema', JSON.stringify(schema, null, 2))
-      setOutputSchemaFields(fields)
+      setInitialOutputSchema(schema as Schema)
     },
     [setValue],
   )
@@ -243,11 +257,11 @@ export function ToolConfigModal({ open, onClose, toolConfigId }: ToolConfigModal
     }
   }
 
-  const onSubmit = async (values: ToolConfigValues) => {
+  const onSubmit = async (values: ToolConfig) => {
     try {
       const apiCall = isUpdate ? put : post
       const requestUrl = isUpdate ? toolConfigUrl : baseUrl
-      const response = await apiCall<ToolConfigValues>(values, requestUrl)
+      const response = await apiCall<ToolConfig>(values, requestUrl)
       if (response) {
         toast({
           title: 'Success!',
@@ -374,7 +388,7 @@ export function ToolConfigModal({ open, onClose, toolConfigId }: ToolConfigModal
                         setIsInputSchemaBuilderOpen(false)
                       }}
                       onSchemaChange={handleInputSchemaChange}
-                      initialFields={inputSchemaFields}
+                      initialSchema={initialInputSchema}
                     />
                   )}
                   <FormField
@@ -415,7 +429,7 @@ export function ToolConfigModal({ open, onClose, toolConfigId }: ToolConfigModal
                         setIsOutputSchemaBuilderOpen(false)
                       }}
                       onSchemaChange={handleOutputSchemaChange}
-                      initialFields={outputSchemaFields}
+                      initialSchema={initialOutputSchema}
                     />
                   )}
                 </div>
