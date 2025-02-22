@@ -2,6 +2,7 @@
 
 import { ChevronsUpDown } from 'lucide-react'
 
+import CustomIcon from '@/components/ui/custom-icons'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,7 +43,7 @@ export function TeamSwitcher({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <activeTeam.logo className="size-8" />
+                <CustomIcon src={`/icons/logo.png`} className="size-10" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
