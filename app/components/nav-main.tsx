@@ -160,10 +160,10 @@ export function NavMain() {
                 <CollapsibleTrigger asChild className="">
                   <SidebarMenuButton
                     tooltip={item.title}
-                    className={`py-5 hover:bg-primary/20 ${isParentActive ? 'bg-primary text-primary-foreground' : ''}`}
+                    className={`py-5 hover:bg-gray-200 ${isParentActive ? 'bg-gray-300 text-black' : 'text-black'}`}
                   >
                     {item.iconName && <CustomIcon src={`/icons/${item?.iconName}`} />}
-                    <span className={`text-primary ${isParentActive && 'text-primary-foreground'}`}>
+                    <span>
                       <b>{item.title}</b>
                     </span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -180,14 +180,10 @@ export function NavMain() {
                         <SidebarMenuSubItem key={subItem.name}>
                           <SidebarMenuSubButton
                             asChild
-                            className={`py-5 hover:bg-primary/20 ${isSubItemActive ? 'bg-primary text-primary-foreground' : 'bg-gray-100'}`}
+                            className={`py-5 hover:bg-gray-200 ${isSubItemActive ? 'bg-gray-300 text-black' : 'bg-gray-100 text-black'}`}
                           >
                             <Link href={subItem.url}>
-                              <span
-                                className={` ${isSubItemActive ? 'text-primary-foreground' : 'text-primary'}`}
-                              >
-                                {subItem.name}
-                              </span>
+                              <span>{subItem.name}</span>
                             </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
@@ -201,14 +197,14 @@ export function NavMain() {
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 tooltip={item.title}
-                className={`py-5 hover:bg-primary/20 ${isParentActive ? 'bg-primary text-primary-foreground ' : ''}`}
+                className={`py-5 hover:bg-gray-200 ${isParentActive ? 'bg-gray-300 text-black' : 'text-black'}`}
                 asChild
               >
                 <Link href={item.url}>
                   {item.iconName && (
                     <CustomIcon
                       src={`/icons/${item?.iconName}`}
-                      className={`${isParentActive ? 'bg-white text-primary-foreground  ' : 'text-primary-foreground '}`}
+                      className={`${isParentActive ? 'bg-white text-black ' : 'text-black '}`}
                     />
                   )}
                   <span>

@@ -30,6 +30,11 @@ const DeleteLLMModel = ({ llmModelId, open, onClose }: DeleteLLMModelProps) => {
     try {
       if (deleteLLMModelURL && deleteLLMModel) {
         await deleteLLMModel(deleteLLMModelURL)
+        toast({
+          title: 'LLM Model Deleted',
+          description: 'The LLM model has been successfully deleted.',
+        })
+
         onClose()
       } else {
         console.error('deleteLLMModelURL or deleteLLMModel is undefined.')
