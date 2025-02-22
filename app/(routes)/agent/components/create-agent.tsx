@@ -295,7 +295,9 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
         setValue('frequency_penalty', foundLLMModel.frequency_penaltyDefault)
         setValue('repeat_penalty', foundLLMModel.repeat_penaltyDefault)
         setValue('description', foundLLMModel.description)
-        setValue('prompt', foundLLMModel.defaultPrompt)
+        if (!agentId) {
+          setValue('prompt', foundLLMModel.defaultPrompt)
+        }
       }
     }
   }, [llmModelId, setValue, llms])

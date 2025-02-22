@@ -1,5 +1,11 @@
 import { FieldType, Schema, SchemaField } from '../types/types'
-
+export const DEFAULT_SCHEMA: Schema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  properties: {},
+  required: [],
+  additionalProperties: false,
+}
 export function generateSchema(fields: SchemaField[]): Schema {
   const schema: Schema = {
     $schema: 'http://json-schema.org/draft-07/schema#',
@@ -12,7 +18,8 @@ export function generateSchema(fields: SchemaField[]): Schema {
   fields.forEach((field) => {
     if (schema.properties && schema.required) {
       schema.properties[field.name] = generateFieldSchema(field)
-      if (field.required) {
+      if (field.required && !schema.required.includes(field.name)) {
+        // Add this check
         schema.required.push(field.name)
       }
     }
@@ -40,9 +47,15 @@ function generateFieldSchema(field: SchemaField): any {
         }
       })
     }
-  } else if (field.type === 'array' && field.children && field.children.length > 0) {
+    if (field.description) fieldSchema.description = field.description
+  } else if (field.type === 'array') {
     fieldSchema.type = 'array'
-    fieldSchema.items = generateFieldSchema(field.children[0])
+    if (field.children && field.children.length > 0) {
+      fieldSchema.items = generateFieldSchema(field.children[0]) // Assuming array of one type
+    } else {
+      fieldSchema.items = {} // or { type: 'any' } if you want to allow any type
+    }
+    if (field.uniqueItems !== undefined) fieldSchema.uniqueItems = field.uniqueItems
   }
 
   // Add validation properties
@@ -99,7 +112,14 @@ function parseSchemaField(name: string, schema: any, required: boolean): SchemaF
       },
     )
   } else if (schema.type === 'array' && schema.items) {
-    field.children = [parseSchemaField('items', schema.items, false)]
+    //console.log("schema.items",schema.items)
+    const itemSchema = schema.items
+    if (itemSchema.type) {
+      field.children = [parseSchemaField('items', itemSchema, false)]
+    } else {
+      // Handle case where items is an empty object or doesn't have a type
+      field.children = [{ name: 'items', type: 'string', required: false }] // Or a default type
+    }
   }
 
   return field

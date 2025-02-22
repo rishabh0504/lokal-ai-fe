@@ -15,37 +15,54 @@ import { useToast } from '@/hooks/use-toast'
 import { AccordionItem } from '@radix-ui/react-accordion'
 import { useCallback, useEffect, useState } from 'react'
 import { FieldBuilder } from './field-builder'
-import { JSONOutput } from './json-output'
+import JsonSchemaViewer from './json-schema-viewer'
 import { SchemaImporter } from './schema-importer'
-import { Schema, SchemaField } from './types/types' // Assuming you have your interfaces in types/types.ts
-import { generateSchema } from './utils/utils'
+import { Schema, SchemaField } from './types/types'
+import { generateSchema, parseSchema } from './utils/utils'
 
 interface SchemaBuilderProps {
   open: boolean
   onClose: () => void
   onSchemaChange: (schema: Schema, fields: SchemaField[]) => void
-  initialFields?: SchemaField[]
+  initialSchema?: Schema // Changed prop name
 }
 
 export function SchemaBuilder({
   open,
   onClose,
   onSchemaChange,
-  initialFields,
+  initialSchema, // Changed prop name
 }: SchemaBuilderProps) {
-  const [fields, setFields] = useState<SchemaField[]>(initialFields || []) // Use initialFields in useState
+  const [fields, setFields] = useState<SchemaField[]>([])
+  const [initialLoad, setInitialLoad] = useState(true)
+  const [currentSchema, setCurrentSchema] = useState<Schema | null>(null)
+
   const { toast } = useToast()
 
   useEffect(() => {
-    if (initialFields) {
-      setFields(initialFields) // set initial data
+    if (initialSchema && initialLoad) {
+      try {
+        const parsedFields = parseSchema(initialSchema)
+        setFields(parsedFields)
+        setCurrentSchema(initialSchema)
+        setInitialLoad(false)
+      } catch (error) {
+        console.error('Error parsing initial schema:', error)
+        toast({
+          title: 'Error Parsing Schema',
+          description: 'There was an error parsing the provided schema.',
+          variant: 'destructive',
+        })
+      }
     }
-  }, [initialFields])
+  }, [initialSchema, toast])
 
   const addField = (field: SchemaField) => {
     const newFields = [...fields, field]
     setFields(newFields)
-    onSchemaChange(generateSchema(newFields), newFields) // Callback here
+    const newSchema = generateSchema(newFields)
+    setCurrentSchema(newSchema)
+    onSchemaChange(newSchema, newFields)
     toast({
       title: 'Field Added',
       description: `New field "${field.name}" of type ${field.type} has been added.`,
@@ -54,16 +71,26 @@ export function SchemaBuilder({
 
   const updateField = (index: number, updatedField: SchemaField) => {
     const newFields = [...fields]
-    newFields[index] = updatedField
-    setFields(newFields)
-    onSchemaChange(generateSchema(newFields), newFields) // Callback Here
+
+    // Check if the index is valid before updating
+    if (index >= 0 && index < newFields.length) {
+      newFields[index] = updatedField
+      setFields(newFields)
+      const newSchema = generateSchema(newFields)
+      setCurrentSchema(newSchema)
+      onSchemaChange(newSchema, newFields)
+    } else {
+      console.error(`Invalid index: ${index}`)
+    }
   }
 
   const removeField = (index: number) => {
     const fieldName = fields[index].name
     const newFields = fields.filter((_, i) => i !== index)
     setFields(newFields)
-    onSchemaChange(generateSchema(newFields), newFields) // Callback Here
+    const newSchema = generateSchema(newFields)
+    setCurrentSchema(newSchema)
+    onSchemaChange(newSchema, newFields)
     toast({
       title: 'Field Removed',
       description: `Field "${fieldName}" has been removed.`,
@@ -73,17 +100,19 @@ export function SchemaBuilder({
 
   const handleImport = (importedFields: SchemaField[]) => {
     setFields(importedFields)
-    onSchemaChange(generateSchema(importedFields), importedFields) // Callback Here
+    const newSchema = generateSchema(importedFields)
+    setCurrentSchema(newSchema)
+    onSchemaChange(newSchema, importedFields)
     toast({
       title: 'Schema Imported',
       description: 'The schema has been successfully imported and loaded.',
     })
   }
 
-  // Use useCallback to memoize the generateSchema function
   const generateNewSchema = useCallback(
     (newFields: SchemaField[]) => {
       const newSchema = generateSchema(newFields)
+      setCurrentSchema(newSchema)
       onSchemaChange(newSchema, newFields)
       return newSchema
     },
@@ -94,8 +123,6 @@ export function SchemaBuilder({
     generateNewSchema(fields)
   }, [fields, generateNewSchema])
 
-  const schema = generateSchema(fields)
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[90%] md:max-w-[75%] lg:max-w-[60%] xl:max-w-[50%]">
@@ -103,19 +130,20 @@ export function SchemaBuilder({
           <DialogTitle>Schema Builder</DialogTitle>
           <DialogDescription>Create and manage your JSON schema here.</DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="builder">
-          <TabsList>
-            <TabsTrigger value="builder">Schema Builder</TabsTrigger>
-            <TabsTrigger value="importer">Import Schema</TabsTrigger>
-            <TabsTrigger value="schema">Schema</TabsTrigger>
-          </TabsList>
-          <TabsContent value="builder" className="border border-gray-300 rounded-lg min-h-50">
-            <div className="space-y-2 p-3">
-              <ScrollArea className="h-[400px] p-4">
+        <ScrollArea className="h-[400px] p-4">
+          <Tabs defaultValue="builder">
+            <TabsList>
+              <TabsTrigger value="builder">Schema Builder</TabsTrigger>
+              <TabsTrigger value="importer">Import Schema</TabsTrigger>
+              <TabsTrigger value="schema">Schema</TabsTrigger>
+            </TabsList>
+            <TabsContent value="builder" className="border border-gray-300 rounded-lg min-h-50">
+              <div className="space-y-2 p-3">
                 <Accordion type="single" collapsible className="w-full">
                   {fields.map((field, index) => (
                     <AccordionItem value={`item-${index}`} key={`item-${index}`}>
                       <FieldBuilder
+                        key={index} // Add the key prop here
                         field={field}
                         onUpdate={(updatedField) => updateField(index, updatedField)}
                         onRemove={() => removeField(index)}
@@ -123,26 +151,28 @@ export function SchemaBuilder({
                     </AccordionItem>
                   ))}
                 </Accordion>
-              </ScrollArea>
 
-              <div className="flex justify-end pt-4 space-x-2">
-                <Button
-                  onClick={() => addField({ name: '', type: 'string', required: false })}
-                  className="px-4 text-xs"
-                >
-                  Add Field
-                </Button>
-                <Button onClick={() => onClose} className="px-4 text-xs">
-                  Done
-                </Button>
+                <div className="flex justify-end pt-4 space-x-2">
+                  <Button
+                    onClick={() => addField({ name: '', type: 'string', required: false })}
+                    className="px-4 text-xs"
+                  >
+                    Add Field
+                  </Button>
+                  <Button onClick={() => onClose} className="px-4 text-xs">
+                    Done
+                  </Button>
+                </div>
               </div>
-            </div>
-          </TabsContent>
-          <TabsContent value="importer">
-            <SchemaImporter onImport={handleImport} />
-          </TabsContent>
-          <TabsContent value="schema">{schema && <JSONOutput schema={schema} />}</TabsContent>
-        </Tabs>
+            </TabsContent>
+            <TabsContent value="importer">
+              <SchemaImporter onImport={handleImport} />
+            </TabsContent>
+            <TabsContent value="schema">
+              {currentSchema && <JsonSchemaViewer schema={currentSchema} />}
+            </TabsContent>
+          </Tabs>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )
