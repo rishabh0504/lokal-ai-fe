@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:local": "yarn run clean && yarn install && yarn run build",
     "start": "next start",
     "prepare": "husky",
     "lint": "next lint",

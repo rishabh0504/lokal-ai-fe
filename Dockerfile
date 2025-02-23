@@ -1,46 +1,58 @@
-# Use the official Node.js image as the base image
-FROM node:18-alpine AS builder
+# Use the official Node.js 20 image as a base
+FROM node:20-alpine AS base
 
-# Set the working directory in the container
+# Set working directory
 WORKDIR /app
 
-# Create a non-root user and group
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Copy package.json, yarn.lock, and next.config.ts
+COPY package.json yarn.lock next.config.ts ./
 
-# Copy package.json and package-lock.json to the container
-COPY package*.json ./
+# Install dependencies using yarn
+RUN yarn install
 
-# Install dependencies using package-lock.json
-RUN npm ci --only=production
-
-# Copy the rest of the application code
+# Copy source code
 COPY . .
 
-# Build the Next.js application
-RUN npm run build
+# Build the Next.js application using yarn
+RUN yarn build
 
-# Use the official Nginx image for serving the application
-FROM nginx:alpine AS production
+# Use a smaller base image for the production environment
+FROM node:20-alpine AS production
 
-# Create a non-root user and group
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Set working directory
+WORKDIR /app
 
-# Copy the built application from the builder stage
-COPY --from=builder /app/.next /usr/share/nginx/html/.next
-COPY --from=builder /app/public /usr/share/nginx/html/public
-COPY --from=builder /app/_next /usr/share/nginx/html/_next
+# Create the 'lokal-ai-fe' user and group
+RUN addgroup -S lokal-ai-fe && adduser -S lokal-ai-fe -G lokal-ai-fe
 
-# Copy the Nginx configuration file
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy package.json and yarn.lock
+COPY package.json yarn.lock ./
 
-# Set the correct ownership for the Nginx directories
-RUN chown -R appuser:appgroup /usr/share/nginx/html
+# Install only production dependencies using yarn
+RUN yarn install --production
 
-# Expose port 80
-EXPOSE 80
+# Copy node_modules from the base image
+COPY --from=base /app/node_modules ./node_modules
 
-# Switch to the non-root user
-USER appuser
+# Copy the .next folder and other static assets from the builder stage
+COPY --from=base /app/.next ./.next
+COPY --from=base /app/public ./public
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# COPYing next.config.js is no longer necessary
+
+COPY --from=base /app/package.json ./package.json
+
+# Set ownership of /app to the 'lokal-ai-fe' user
+RUN chown -R lokal-ai-fe:lokal-ai-fe /app
+
+# Expose port
+EXPOSE 3000
+
+# Switch to the 'lokal-ai-fe' user
+USER lokal-ai-fe
+
+# Set environment variables (important for production!)
+ENV NODE_ENV production
+
+# Command to run the application using npm
+CMD ["npm", "start"]
