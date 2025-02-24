@@ -1,46 +1,61 @@
-# Use the official Node.js image as the base image
-FROM node:18-alpine AS builder
+# --- STAGE 1: Base Image ---
+    FROM node:20-alpine AS base
 
-# Set the working directory in the container
-WORKDIR /app
-
-# Create a non-root user and group
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Copy package.json and package-lock.json to the container
-COPY package*.json ./
-
-# Install dependencies using package-lock.json
-RUN npm ci --only=production
-
-# Copy the rest of the application code
-COPY . .
-
-# Build the Next.js application
-RUN npm run build
-
-# Use the official Nginx image for serving the application
-FROM nginx:alpine AS production
-
-# Create a non-root user and group
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Copy the built application from the builder stage
-COPY --from=builder /app/.next /usr/share/nginx/html/.next
-COPY --from=builder /app/public /usr/share/nginx/html/public
-COPY --from=builder /app/_next /usr/share/nginx/html/_next
-
-# Copy the Nginx configuration file
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Set the correct ownership for the Nginx directories
-RUN chown -R appuser:appgroup /usr/share/nginx/html
-
-# Expose port 80
-EXPOSE 80
-
-# Switch to the non-root user
-USER appuser
-
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+    ARG NODE_ENV=production
+    ENV NODE_ENV=${NODE_ENV}
+    
+    WORKDIR /app
+    
+    # Install pnpm
+    RUN npm install -g pnpm
+    
+    # Copy package.json and pnpm-lock.yaml
+    COPY package*.json pnpm-lock.yaml ./
+    
+    # Install dependencies needed for both build and runtime
+    RUN pnpm install --frozen-lockfile
+    
+    # --- STAGE 2: Build Stage ---
+    FROM base AS builder
+    
+    # Copy the application source code
+    COPY . .
+    
+    # Build the Next.js application
+    RUN pnpm build
+    
+    # --- STAGE 3: Production Image (Smaller, More Secure) ---
+    FROM node:20-alpine AS production
+    
+    WORKDIR /app
+    
+    # Create the 'lokalai' user and group
+    RUN addgroup -S lokalai && adduser -S lokalai -G lokalai
+    
+    # Copy package.json and pnpm-lock.yaml
+    COPY package*.json pnpm-lock.yaml ./
+    
+    # Install *only* production dependencies (using npx pnpm)
+    RUN npx pnpm install --frozen-lockfile --production --ignore-scripts
+    
+    # Copy the .next directory (built application) from the builder stage
+    COPY --chown=lokalai:lokalai --from=builder /app/.next ./.next
+    
+    # Copy the public directory (static assets) from the builder stage
+    COPY --chown=lokalai:lokalai --from=builder /app/public ./public
+    
+    # Copy node modules for the production environment
+    COPY --chown=lokalai:lokalai --from=builder /app/node_modules ./node_modules
+    
+    # Set ownership of /app to the 'lokalai' user
+    # Removed the separate chown command
+    #RUN chown -R lokalai:lokalai /app
+    
+    # Switch to the 'lokalai' user
+    USER lokalai
+    
+    # Expose the application port
+    EXPOSE 3000
+    
+    # Define the command to start the application
+    CMD ["npm", "start"]
