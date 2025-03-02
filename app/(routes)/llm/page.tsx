@@ -195,14 +195,6 @@ const LLMModelPage: NextPage = () => {
     fetchLLMs()
   }, [refetchLLms])
 
-  useEffect(() => {
-    const fetchLLMs = async () => {
-      getLargeLanguageModel()
-      setRefetchLLms(false)
-    }
-    fetchLLMs()
-  }, [dispatch, getLLMs])
-
   const handleEditLLMModel = (llmModelId: string) => {
     setLLMModelIdToBeEdited(llmModelId)
     setIsCreateLLMModelOpen(true)
