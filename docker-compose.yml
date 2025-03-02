@@ -1,8 +1,11 @@
+version: '3.8'
+
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile
+    image: lokal-ai-fe
     ports:
       - '80:3000'
     environment:
@@ -15,4 +18,11 @@ services:
       NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL}
       NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: ${NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL}
     restart: unless-stopped
-    #   depends_on: # If you have other services like a database
+    deploy:
+      replicas: 3
+    networks:
+      - lokal-ai-network
+
+networks:
+  lokal-ai-network:
+    driver: bridge

@@ -48,3 +48,8 @@ export type AgentDto = {
 export type StringKeyStringValueType = {
   [key: string]: string
 }
+
+export type LabelValuePair = {
+  label: string
+  value: string
+}

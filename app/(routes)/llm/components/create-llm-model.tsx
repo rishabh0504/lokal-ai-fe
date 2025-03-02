@@ -1,10 +1,11 @@
 'use client'
 
-import { LLMModel, ModelResponse } from '@/app/(routes)/llm/types/type'
+import { LLMModelConfig, OllamaModelResponse } from '@/app/(routes)/llm/types/type'
 import useFetch from '@/app/hooks/useFetch'
 import { RootState } from '@/app/store/store'
 import { API_CONFIG } from '@/app/utils/config'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,8 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSelector } from 'react-redux'
 import * as z from 'zod'
+import JsonEditorModal from './json-editor-modal'
+import { StopSequenceMultiSelect } from './stop_sequence_component'
 
 const formSchema = z.object({
   name: z
@@ -50,7 +53,7 @@ const formSchema = z.object({
   description: z
     .string()
     .min(10, { message: 'Desciption must be 10 characters' })
-    .max(50, { message: 'Description cannot exceed 50 characters.' }),
+    .max(1000, { message: 'Description cannot exceed 1000 characters.' }),
 
   temperatureMin: z.number(),
   temperatureMax: z.number(),
@@ -80,11 +83,11 @@ const formSchema = z.object({
   repeat_penaltyMax: z.number(),
   repeat_penaltyDefault: z.number(),
 
-  stop_sequences: z.string(),
+  stop_sequences: z.array(z.string()).optional(),
   defaultPrompt: z
     .string()
-    .min(100, { message: 'Default prompt must be 100 characters' })
-    .max(200, { message: 'Default prompt cannot exceed 200 characters.' }),
+    .min(100, { message: 'System Prompt must be 100 characters' })
+    .max(1000, { message: 'System Prompt cannot exceed 1000 characters.' }),
 })
 
 interface CreateLLMModelProps {
@@ -96,13 +99,15 @@ interface CreateLLMModelProps {
 const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
   const [isUpdate, setIsUpdate] = useState(false)
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false)
-  const ollamaModels: ModelResponse[] =
-    useSelector((state: RootState) => state.llms.ollamaModels) || []
+
+  const [loadModel, setLoadModel] = useState<boolean>(false)
+  const ollamaModels: OllamaModelResponse[] =
+    useSelector((state: RootState) => state.ollamaModels.items) || []
 
   const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.root}`
   const llmModelUrl = llmModelId ? `${baseUrl}/${llmModelId}` : baseUrl
 
-  const { loading, get, post, put } = useFetch<LLMModel>(baseUrl)
+  const { loading, get, post, put } = useFetch<LLMModelConfig>(baseUrl)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -132,12 +137,13 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
       repeat_penaltyMin: 0,
       repeat_penaltyMax: 0,
       repeat_penaltyDefault: 0,
-      stop_sequences: '',
+      stop_sequences: [],
       defaultPrompt: '',
     },
     mode: 'onChange',
   })
 
+  const { watch } = form
   useEffect(() => {
     const fetchLLMModel = async () => {
       if (llmModelId) {
@@ -181,18 +187,16 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
 
             form.setValue(
               'stop_sequences',
-              fetchedLLMModel.stop_sequences
-                ? JSON.stringify(fetchedLLMModel.stop_sequences)
-                : '[]',
+              fetchedLLMModel.stop_sequences ? fetchedLLMModel.stop_sequences : [],
             )
 
             setIsUpdate(true)
             setInitialValuesLoaded(true)
           } else {
-            console.error('Failed to fetch LLMModel for update.')
+            console.error('Failed to fetch LLMModelConfig for update.')
           }
         } catch (e) {
-          console.error('Failed to fetch LLMModel for update.', e)
+          console.error('Failed to fetch LLMModelConfig for update.', e)
         }
       } else {
         setInitialValuesLoaded(true)
@@ -204,25 +208,8 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      let stopSequencesArray: string[] | undefined
-
-      if (values.stop_sequences) {
-        try {
-          stopSequencesArray = JSON.parse(values.stop_sequences) as string[]
-          if (
-            !Array.isArray(stopSequencesArray) ||
-            !stopSequencesArray.every((item) => typeof item === 'string')
-          ) {
-            throw new Error('stop_sequences must be a JSON array of strings.')
-          }
-        } catch (e) {
-          console.error('Failed to parse stop_sequences JSON: ', e)
-          throw new Error(
-            'Invalid JSON format for stop_sequences. Please use a JSON array of strings.',
-          )
-        }
-      }
-      const llmModelData: Partial<LLMModel> = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const llmModelData: any = {
         name: values.name,
         modelName: values.modelName,
         version: values.version,
@@ -248,13 +235,13 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
         repeat_penaltyMin: values.repeat_penaltyMin,
         repeat_penaltyMax: values.repeat_penaltyMax,
         repeat_penaltyDefault: values.repeat_penaltyDefault,
-        stop_sequences: stopSequencesArray,
+        stop_sequences: values?.stop_sequences ? JSON.stringify(values.stop_sequences) : '',
         defaultPrompt: values.defaultPrompt,
       }
 
       const apiCall = isUpdate ? put : post
       const requestUrl = isUpdate ? llmModelUrl : baseUrl
-      const response = await apiCall<Partial<LLMModel>>(llmModelData, requestUrl)
+      const response = await apiCall<Partial<LLMModelConfig>>(llmModelData, requestUrl)
 
       if (!response) {
         throw new Error(`Failed to ${isUpdate ? 'update' : 'create'} LLM Model.`)
@@ -284,6 +271,50 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
       onClose()
     }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleLoadingModel = (loadConfig: any) => {
+    if (loadConfig) {
+      // loadConfig = JSON.parse(loadConfig)
+      form.setValue('name', loadConfig.name)
+      form.setValue('modelName', loadConfig.modelName)
+      form.setValue('version', loadConfig.version)
+      form.setValue('description', loadConfig.description)
+
+      form.setValue('temperatureMin', loadConfig.temperatureMin)
+      form.setValue('temperatureMax', loadConfig.temperatureMax)
+      form.setValue('temperatureDefault', loadConfig.temperatureDefault)
+
+      form.setValue('top_pMin', loadConfig.top_pMin)
+      form.setValue('top_pMax', loadConfig.top_pMax)
+      form.setValue('top_pDefault', loadConfig.top_pDefault)
+
+      form.setValue('top_kMin', loadConfig.top_kMin)
+      form.setValue('top_kMax', loadConfig.top_kMax)
+      form.setValue('top_kDefault', loadConfig.top_kDefault)
+
+      form.setValue('max_tokensMin', loadConfig.max_tokensMin)
+      form.setValue('max_tokensMax', loadConfig.max_tokensMax)
+      form.setValue('max_tokensDefault', loadConfig.max_tokensDefault)
+
+      form.setValue('presence_penaltyMin', loadConfig.presence_penaltyMin)
+      form.setValue('presence_penaltyMax', loadConfig.presence_penaltyMax)
+      form.setValue('presence_penaltyDefault', loadConfig.presence_penaltyDefault)
+
+      form.setValue('frequency_penaltyMin', loadConfig.frequency_penaltyMin)
+      form.setValue('frequency_penaltyMax', loadConfig.frequency_penaltyMax)
+      form.setValue('frequency_penaltyDefault', loadConfig.frequency_penaltyDefault)
+
+      form.setValue('repeat_penaltyMin', loadConfig.repeat_penaltyMin)
+      form.setValue('repeat_penaltyMax', loadConfig.repeat_penaltyMax)
+      form.setValue('repeat_penaltyDefault', loadConfig.repeat_penaltyDefault)
+      form.setValue('defaultPrompt', loadConfig.defaultPrompt)
+      form.setValue('stop_sequences', loadConfig.stop_sequences ? loadConfig.stop_sequences : [])
+    }
+  }
+
+  const selectedStopSequences = form.watch('stop_sequences') || []
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[950px]">
@@ -296,8 +327,18 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
               ? 'Modify the LLM Model as you need.'
               : 'Add a new LLM Model to your application.'}
           </DialogDescription>
-          <DialogDescription className="text-sm text-muted-foreground">
-            (Make sure the parameters are as per the model selected)
+          <DialogDescription className="text-sm text-muted-foreground flex items-center justify-between px-10">
+            <span>(Make sure the parameters are as per the model selected)</span>
+            <Button
+              variant={'secondary'}
+              disabled={!watch('modelName')}
+              className="bg-gray-300 hover:bg-gray-100"
+              onClick={() => {
+                setLoadModel(true)
+              }}
+            >
+              Load Config
+            </Button>
           </DialogDescription>
         </DialogHeader>
 
@@ -923,28 +964,48 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="stop_sequences"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-right">Stop Sequences</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='JSON Array of strings, example: ["\\n\\n", "."]'
-                          {...field}
-                          disabled={loading || !initialValuesLoaded}
-                          className="bg-background border-input text-foreground shadow-sm"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      <p className="text-sm text-muted-foreground">
-                        (JSON array of strings. Example:{' '}
-                        <code>[&quot;\\n\\n&quot;, &quot;.&quot;]</code>)
-                      </p>
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="w-full max-w-[250px]">
+                    <FormField
+                      control={form.control}
+                      name="stop_sequences"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-right">Stop Sequences</FormLabel>
+                          <FormControl>
+                            <StopSequenceMultiSelect
+                              value={field.value ?? []}
+                              onChange={field.onChange}
+                              className="max-w-[250px]"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="w-full col-span-2">
+                    <FormLabel>Selected Stop Sequences</FormLabel>
+                    <Card className="">
+                      <CardContent className="p-2">
+                        {selectedStopSequences && selectedStopSequences.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {selectedStopSequences.map((label) => (
+                              <span
+                                key={label}
+                                className="bg-gray-200 px-2 py-1 text-xs border rounded-md"
+                              >
+                                {label}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs p-4">No stop sequences selected.</span>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
 
                 <div className="flex justify-end">
                   <Button type="submit" disabled={loading || !initialValuesLoaded}>
@@ -957,6 +1018,17 @@ const CreateLLMModel = ({ llmModelId, open, onClose }: CreateLLMModelProps) => {
                 </div>
               </form>
             </Form>
+
+            {loadModel && (
+              <JsonEditorModal
+                isOpen={loadModel}
+                onClose={() => {
+                  setLoadModel(false)
+                }}
+                onDone={handleLoadingModel}
+                modelName={form.getValues('modelName')}
+              />
+            )}
           </div>
         </ScrollArea>
       </DialogContent>
