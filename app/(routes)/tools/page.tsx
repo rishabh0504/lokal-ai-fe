@@ -46,8 +46,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import type { NextPage } from 'next/types'
 import { useDispatch, useSelector } from 'react-redux'
 import { ToolConfigModal } from './components/create-edit-tool-model'
-import { ToolConfig } from './dto/types'
 import DeleteToolConfig from './components/delete-tools'
+import { ToolConfig } from './dto/types'
 
 const ToolsConfigPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -70,21 +70,7 @@ const ToolsConfigPage: NextPage = () => {
   const toolConfigs = useSelector((state: RootState) => state.toolConfigs.items) || []
   const memoizedToolConfig = useMemo(() => toolConfigs, [toolConfigs])
 
-  const { get: getToolsConfig } = useFetch<ToolConfig[]>(baseUrl)
-
-  const getToolsConfigList = async () => {
-    const toolsConfigList = await getToolsConfig(baseUrl)
-    if (toolsConfigList && Array.isArray(toolsConfigList)) {
-      dispatch(setToolConfig(toolsConfigList))
-    }
-  }
-
-  useEffect(() => {
-    const fetchToolsConfig = async () => {
-      getToolsConfigList()
-    }
-    fetchToolsConfig()
-  }, [dispatch, getToolsConfig])
+  // const { get: getToolsConfig } = useFetch<ToolConfig[]>(baseUrl)
 
   const columns: ColumnDef<ToolConfig>[] = useMemo(
     () => [

@@ -44,9 +44,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { NextPage } from 'next/types'
 import { useDispatch, useSelector } from 'react-redux'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 const AgentPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -72,14 +72,6 @@ const AgentPage: NextPage = () => {
       dispatch(setAgents(agents))
     }
   }
-
-  useEffect(() => {
-    const fetchAgents = async () => {
-      getAgentList()
-      setRefetchAgent(false)
-    }
-    fetchAgents()
-  }, [dispatch, getAgents])
 
   useEffect(() => {
     const fetchAgents = async () => {
