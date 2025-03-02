@@ -99,7 +99,7 @@ const JsonEditorModal: React.FC<JsonEditorModalProps> = ({
 
   const copyPrompt = async () => {
     let prompt = LLM_CONFIG_FOR_MODELS.replace('{modelName}', modelName)
-    prompt = prompt.replace('{FORMAT}', JSON.stringify(DEFAULT_JSON, null, 2))
+    prompt = await prompt.replace('{FORMAT}', JSON.stringify(DEFAULT_JSON, null, 2))
     await copyToClipboard(prompt)
   }
 
