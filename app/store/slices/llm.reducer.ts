@@ -1,11 +1,11 @@
-import { LLMModel, ModelResponse } from '@/app/(routes)/llm/types/type'
+import { LLMModelConfig, OllamaModelResponse } from '@/app/(routes)/llm/types/type'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface LLMState {
-  items: LLMModel[]
+  items: LLMModelConfig[]
   loading: boolean
   error: string | null
-  ollamaModels: ModelResponse[]
+  ollamaModels: OllamaModelResponse[]
 }
 
 const initialState: LLMState = {
@@ -19,18 +19,16 @@ export const llmSlice = createSlice({
   name: 'llms',
   initialState,
   reducers: {
-    setLLMs: (state, action: PayloadAction<LLMModel[]>) => {
+    setLLMs: (state, action: PayloadAction<LLMModelConfig[]>) => {
       state.items = action.payload
       state.loading = false
       state.error = null
     },
-    setOllamaModels: (state, action: PayloadAction<ModelResponse[]>) => {
-      state.ollamaModels = action.payload
-    },
-    addLLM: (state, action: PayloadAction<LLMModel>) => {
+
+    addLLM: (state, action: PayloadAction<LLMModelConfig>) => {
       state.items.push(action.payload)
     },
-    updateLLM: (state, action: PayloadAction<LLMModel>) => {
+    updateLLM: (state, action: PayloadAction<LLMModelConfig>) => {
       const index = state.items.findIndex((item) => item.id === action.payload.id)
       if (index !== -1) {
         state.items[index] = action.payload
@@ -48,7 +46,6 @@ export const llmSlice = createSlice({
   },
 })
 
-export const { setLLMs, addLLM, updateLLM, deleteLLM, setLoading, setError, setOllamaModels } =
-  llmSlice.actions
+export const { setLLMs, addLLM, updateLLM, deleteLLM, setLoading, setError } = llmSlice.actions
 
 export default llmSlice.reducer

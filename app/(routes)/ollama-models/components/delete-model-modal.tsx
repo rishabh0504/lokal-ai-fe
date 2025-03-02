@@ -1,6 +1,4 @@
 'use client'
-
-import { LLMModelConfig } from '@/app/(routes)/llm/types/type'
 import useFetch from '@/app/hooks/useFetch'
 import { API_CONFIG } from '@/app/utils/config'
 import {
@@ -14,46 +12,41 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { toast } from '@/hooks/use-toast'
+import { OllamaModelResponse } from '../../llm/types/type'
 
-interface DeleteLLMModelProps {
-  llmModelId: string | undefined
+interface DeleteModelModalProps {
+  modelName: string
   open: boolean
   onClose: () => void
 }
 
-const DeleteLLMModel = ({ llmModelId, open, onClose }: DeleteLLMModelProps) => {
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.root}`
-  const deleteLLMModelURL = llmModelId ? `${baseUrl}/${llmModelId}` : baseUrl
-  const { loading, del: deleteLLMModel } = useFetch<LLMModelConfig>(deleteLLMModelURL)
+const DeleteModelModal = ({ modelName, open, onClose }: DeleteModelModalProps) => {
+  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.ollamaServices.removeModel}`
+  const { loading, del: deleteModel } = useFetch<OllamaModelResponse>(baseUrl)
 
   const handleDelete = async () => {
     try {
-      if (deleteLLMModelURL && deleteLLMModel) {
-        await deleteLLMModel(deleteLLMModelURL)
-        toast({
-          title: 'LLM Model Deleted',
-          description: 'The LLM model has been successfully deleted.',
-        })
-
-        onClose()
-      } else {
-        console.error('deleteLLMModelURL or deleteLLMModel is undefined.')
-        alert('Failed to delete LLM Model: Invalid URL or delete function.')
-        onClose()
-      }
+      const finalEndpoint = baseUrl.replace('{modelName}', modelName)
+      await deleteModel(finalEndpoint)
+      toast({
+        title: `Model Removal Status`,
+        description: 'Model uninstallation status in progress!',
+      })
+      onClose()
     } catch (error: unknown) {
-      let errorMessage = 'Failed to delete LLM Model.'
+      let errorMessage = `Failed to remove model ${modelName}.`
 
       if (error instanceof Error) {
         errorMessage = error.message
       } else {
-        console.error('An unexpected error occurred during LLM Model deletion:', error)
+        console.error('An unexpected error occurred during model deletion:', error)
         errorMessage =
-          'An unexpected error occurred during LLM Model deletion. Please check the console for details.'
+          'An unexpected error occurred during model deletion. Please check the console for details.'
       }
+
       toast({
         variant: 'destructive',
-        title: 'Error Deleting LLM Model',
+        title: 'Error Deleting Model',
         description: errorMessage,
       })
       onClose()
@@ -66,7 +59,7 @@ const DeleteLLMModel = ({ llmModelId, open, onClose }: DeleteLLMModelProps) => {
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the LLM Model and all related
+            This action cannot be undone. This will permanently remove the model and all related
             data.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -81,4 +74,4 @@ const DeleteLLMModel = ({ llmModelId, open, onClose }: DeleteLLMModelProps) => {
   )
 }
 
-export default DeleteLLMModel
+export default DeleteModelModal

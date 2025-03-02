@@ -1,10 +1,10 @@
-import { LLMModel } from '@/app/(routes)/llm/types/type'
+import { LLMModelConfig } from '@/app/(routes)/llm/types/type'
 
 export type Agent = {
   id: string
   name: string
   llmModelId: string
-  llmModel?: LLMModel
+  llmModel?: LLMModelConfig
   temperature?: number
   top_p?: number
   top_k?: number

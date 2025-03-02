@@ -3,6 +3,7 @@ import { configureStore } from '@reduxjs/toolkit'
 
 import agentReducer from './slices/agent.reducer'
 import llmReducer from './slices/llm.reducer'
+import ollamaModelReducer from './slices/ollama-models.reducer'
 import sessionReducer from './slices/session.reducer'
 import toolConfigReducer from './slices/tool-config.reducer'
 
@@ -12,6 +13,7 @@ export const store = configureStore({
     agents: agentReducer,
     sessions: sessionReducer,
     toolConfigs: toolConfigReducer,
+    ollamaModels: ollamaModelReducer,
   },
 })
 

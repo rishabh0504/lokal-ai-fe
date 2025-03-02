@@ -235,17 +235,6 @@ const ToolsConfigPage: NextPage = () => {
     fetchToolsConfigItems()
   }, [dispatch, getTools])
 
-  // const handleEditToolsConfigModel = (toolsConfigId: string) => {
-  //   setAgentConfigToBeEdited(llmModelId)
-  //   setIsCreateLLMModelOpen(true)
-  // }
-
-  // const handleCreateLLMModelClose = () => {
-  //   setIsCreateLLMModelOpen(false)
-  //   setAgentConfigToBeEdited(undefined)
-  //   setRefetchToolConfig(true)
-  // }
-
   const deleteToolConfig = (toolConfigId: string | undefined) => {
     if (toolConfigId) {
       setToolConfigIdToBeDeleted(toolConfigId)

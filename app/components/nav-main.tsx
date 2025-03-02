@@ -20,14 +20,15 @@ import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Agent } from '../(routes)/agent/types/type'
 import Chat from '../(routes)/chat/components/chat'
-import { LLMModel, ModelResponse } from '../(routes)/llm/types/type'
+import { LLMModelConfig, OllamaModelResponse } from '../(routes)/llm/types/type'
 import useFetch from '../hooks/useFetch'
 import { setAgents } from '../store/slices/agent.reducer'
-import { setLLMs, setOllamaModels } from '../store/slices/llm.reducer'
+import { setLLMs } from '../store/slices/llm.reducer'
 import { setSessions } from '../store/slices/session.reducer'
 import { AppDispatch, RootState } from '../store/store'
 import { API_CONFIG, SIDEBAR_CONFIG } from '../utils/config'
 import { Items, NavItem } from '../utils/types'
+import { setOllamaModels } from '../store/slices/ollama-models.reducer'
 export type SessionModel = {
   id: string
   title: string
@@ -62,7 +63,7 @@ export function NavMain() {
 
   // Fetch all the llms======================
   const llmsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.root}`
-  const { get: fetchLLMs } = useFetch<LLMModel[]>(llmsBaseUrl)
+  const { get: fetchLLMs } = useFetch<LLMModelConfig[]>(llmsBaseUrl)
   const getAllLLMs = async () => {
     const llms = await fetchLLMs(llmsBaseUrl)
     if (llms && Array.isArray(llms)) {
@@ -95,12 +96,14 @@ export function NavMain() {
   // Fetch all the agents  completed ======================
 
   // Fetch all the ollama models======================
-  const ollamaModelsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.aiService.root}`
-  const { get: fetchOllamaModels } = useFetch<ModelResponse[]>(ollamaModelsBaseUrl)
+  const ollamaModelsBaseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.ollamaServices.root}`
+  const { get: fetchOllamaModels } = useFetch<OllamaModelResponse[]>(ollamaModelsBaseUrl)
   const getOllamaModels = async () => {
     const ollamaModels = await fetchOllamaModels(ollamaModelsBaseUrl)
     if (ollamaModels && Array.isArray(ollamaModels)) {
       dispatch(setOllamaModels(ollamaModels))
+      // dispatch(setOllamaModels(ollamaModels))
+      // dispatch(setOllamaModels())
     }
   }
   useEffect(() => {

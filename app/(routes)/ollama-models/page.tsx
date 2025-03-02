@@ -1,5 +1,4 @@
 'use client'
-
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,17 +11,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ChevronDown, MoreHorizontal } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
-import CreateLLMModel from '@/app/(routes)/llm/components/create-llm-model'
-import DeleteLLMModel from '@/app/(routes)/llm/components/delete-llm-model'
-import { LLMModelConfig } from '@/app/(routes)/llm/types/type'
-import useFetch from '@/app/hooks/useFetch'
-import { setLLMs } from '@/app/store/slices/llm.reducer'
-import { AppDispatch, RootState } from '@/app/store/store'
-import { API_CONFIG } from '@/app/utils/config'
-import { formatDateForTable } from '@/app/utils/util-service'
+import { RootState } from '@/app/store/store'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -30,12 +22,10 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import Loading from '@/components/ui/loading'
 import { Separator } from '@/components/ui/separator'
 import {
   Table,
@@ -45,29 +35,26 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import type { NextPage } from 'next/types'
-import { useDispatch, useSelector } from 'react-redux'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import type { NextPage } from 'next/types'
+import { useSelector } from 'react-redux'
+import { ModelDetails, OllamaModelResponse } from '../llm/types/type'
+import InstallModal from './components/install-model-modal'
+import DeleteModelModal from './components/delete-model-modal'
 
-const LLMModelPage: NextPage = () => {
+const OllamaModelPage: NextPage = () => {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
+  const [installation, setInstallation] = useState<boolean>(false)
 
-  const [llmModelIdToBeEdited, setLLMModelIdToBeEdited] = useState<string | undefined>(undefined)
-  const [isCreateLLMModelOpen, setIsCreateLLMModelOpen] = useState(false)
-  const [llmModelIdToBeDeleted, setLLMModelIdToBeDeleted] = useState<string | undefined>(undefined)
-  const [isDeleteLLMModelOpen, setIsDeleteLLMModelOpen] = useState(false)
-  const [refetchLLms, setRefetchLLms] = useState<boolean>(false)
+  const [deleteModel, setDeleteModel] = useState<string | undefined>(undefined)
 
-  const dispatch = useDispatch<AppDispatch>()
-  const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_POINT}/${API_CONFIG.llms.root}`
+  const ollamaModels: OllamaModelResponse[] =
+    useSelector((state: RootState) => state.ollamaModels.items) || []
 
-  const llmModels = useSelector((state: RootState) => state.llms.items) || []
-  const memoizedLLMModels = useMemo(() => llmModels, [llmModels])
-
-  const columns: ColumnDef<LLMModelConfig>[] = useMemo(
+  const columns: ColumnDef<OllamaModelResponse>[] = useMemo(
     () => [
       {
         id: 'select',
@@ -93,45 +80,63 @@ const LLMModelPage: NextPage = () => {
       },
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: 'Model',
         cell: ({ row }) => <div className="capitalize">{row.getValue('name')}</div>,
       },
       {
-        accessorKey: 'modelName',
-        header: 'Model Name',
-        cell: ({ row }) => <div className="lowercase">{row.getValue('modelName')}</div>,
-      },
-      {
-        accessorKey: 'description',
-        header: 'Description',
+        accessorKey: 'model',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Model name
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          )
+        },
         cell: ({ row }) => {
-          const description = String(row.getValue('description'))
+          const model = String(row.getValue('model'))
           return (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div>{description}</div>
+                  <div className="lowercase overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px] group cursor-pointer">
+                    {model}
+                  </div>
                 </TooltipTrigger>
-                <TooltipContent className="w-64">{description}</TooltipContent>
+                <TooltipContent className="w-64">{model}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )
         },
       },
       {
-        accessorKey: 'created_at',
-        header: () => <div className="text-right">Created Date</div>,
+        accessorKey: 'details.parameter_size', // Access the nested property directly
+        header: 'Parameter Size',
         cell: ({ row }) => {
-          const createdAt = String(row.getValue('created_at'))
-          const formatted = formatDateForTable(createdAt)
-          return <div className="text-right font-medium">{formatted}</div>
+          const details: ModelDetails = row.original.details // Access from row.original
+          const parameterSize = details?.parameter_size || 'N/A' //Provide default value
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-center font-medium overflow-hidden text-ellipsis whitespace-nowrap group cursor-pointer">
+                    {parameterSize}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="w-64">{parameterSize}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )
         },
       },
       {
         id: 'actions',
         enableHiding: false,
         cell: ({ row }) => {
-          const llmModel = row.original
+          const ollamModel = row.original
 
           return (
             <DropdownMenu>
@@ -142,12 +147,12 @@ const LLMModelPage: NextPage = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleEditLLMModel(llmModel.id)}>
-                  Edit LLM Model
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => deleteLLMModel(llmModel.id)}>
-                  Delete LLM Model
+                <DropdownMenuItem
+                  onClick={() => {
+                    setDeleteModel(ollamModel.name)
+                  }}
+                >
+                  Uninstall Model
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -158,8 +163,8 @@ const LLMModelPage: NextPage = () => {
     [],
   )
 
-  const table = useReactTable<LLMModelConfig>({
-    data: memoizedLLMModels,
+  const table = useReactTable<OllamaModelResponse>({
+    data: ollamaModels || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -177,65 +182,19 @@ const LLMModelPage: NextPage = () => {
     },
   })
 
-  const { loading, get: getLLMs } = useFetch<LLMModelConfig[]>(baseUrl)
-
-  const getLargeLanguageModel = async () => {
-    const llms = await getLLMs(baseUrl)
-    if (llms && Array.isArray(llms)) {
-      dispatch(setLLMs(llms))
-    }
-  }
-  useEffect(() => {
-    const fetchLLMs = async () => {
-      if (refetchLLms) {
-        getLargeLanguageModel()
-        setRefetchLLms(false)
-      }
-    }
-    fetchLLMs()
-  }, [refetchLLms])
-
-  useEffect(() => {
-    const fetchLLMs = async () => {
-      getLargeLanguageModel()
-      setRefetchLLms(false)
-    }
-    fetchLLMs()
-  }, [dispatch, getLLMs])
-
-  const handleEditLLMModel = (llmModelId: string) => {
-    setLLMModelIdToBeEdited(llmModelId)
-    setIsCreateLLMModelOpen(true)
-  }
-
-  const handleCreateLLMModelClose = () => {
-    setIsCreateLLMModelOpen(false)
-    setLLMModelIdToBeEdited(undefined)
-    setRefetchLLms(true)
-  }
-
-  const deleteLLMModel = (llmModelId: string) => {
-    setLLMModelIdToBeDeleted(llmModelId)
-    setIsDeleteLLMModelOpen(true)
-  }
-
-  const handleDeleteLLMModelClose = () => {
-    setIsDeleteLLMModelOpen(false)
-    setLLMModelIdToBeDeleted(undefined)
-    setRefetchLLms(true)
-  }
-
   return (
     <div className="w-full flex flex-col px-4 md:px-6 lg:px-8">
       <div className="flex justify-between items-center py-4">
-        <Label
-          htmlFor="LLMModelConfig"
-          className="text-lg font-semibold tracking-tight text-primary"
-        >
-          LLM Models
+        <Label htmlFor="OllamaModels" className="text-lg font-semibold tracking-tight text-primary">
+          Ollama Models
         </Label>
-        <Button variant="outline" onClick={() => setIsCreateLLMModelOpen(true)}>
-          Create LLM Model
+        <Button
+          variant="outline"
+          onClick={() => {
+            setInstallation((prev) => !prev)
+          }}
+        >
+          Install Models
         </Button>
       </div>
       <div className="flex flex-col gap-4">
@@ -243,7 +202,7 @@ const LLMModelPage: NextPage = () => {
         <div className="w-full">
           <div className="flex items-center py-4">
             <Input
-              placeholder="Filter LLM Model..."
+              placeholder="Filter ollama models..."
               value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
               onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
               className="max-w-sm"
@@ -291,35 +250,25 @@ const LLMModelPage: NextPage = () => {
                 ))}
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24">
-                      <div className="flex justify-center items-center h-full">
-                        <Loading />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  <>
-                    {table.getRowModel().rows.length ? (
-                      table.getRowModel().rows.map((row) => (
-                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={columns.length} className="h-24 text-center">
-                          No results.
-                        </TableCell>
+                <>
+                  {table.getRowModel().rows.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
                       </TableRow>
-                    )}
-                  </>
-                )}
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="h-24 text-center">
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
               </TableBody>
             </Table>
           </div>
@@ -347,25 +296,26 @@ const LLMModelPage: NextPage = () => {
               </Button>
             </div>
           </div>
+
+          {installation && (
+            <InstallModal
+              isOpen={installation}
+              onClose={() => {
+                setInstallation(false)
+              }}
+            />
+          )}
+          {deleteModel && (
+            <DeleteModelModal
+              modelName={deleteModel}
+              open={true}
+              onClose={() => setDeleteModel(undefined)}
+            />
+          )}
         </div>
       </div>
-      {isCreateLLMModelOpen && (
-        <CreateLLMModel
-          llmModelId={llmModelIdToBeEdited}
-          open={isCreateLLMModelOpen}
-          onClose={handleCreateLLMModelClose}
-        />
-      )}
-
-      {isDeleteLLMModelOpen && (
-        <DeleteLLMModel
-          llmModelId={llmModelIdToBeDeleted}
-          open={isDeleteLLMModelOpen}
-          onClose={handleDeleteLLMModelClose}
-        />
-      )}
     </div>
   )
 }
 
-export default LLMModelPage
+export default OllamaModelPage

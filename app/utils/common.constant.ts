@@ -1,4 +1,4 @@
-import { StringKeyStringValueType } from './types'
+import { LabelValuePair, StringKeyStringValueType } from './types'
 
 export const NAVITEM_TYPES = {
   CHAT_TYPE: 'chat_history',
@@ -17,3 +17,59 @@ export const LLM_AGENT_PARAMETERS: StringKeyStringValueType = {
   frequency_penalty: `Controls the likelihood of the model using tokens that have already been used frequently in the response. Higher values (e.g., {frequency_penaltyMax}) discourage the use of tokens that have already been used frequently, while lower values (e.g., {frequency_penaltyMin}) allow for more frequent use of tokens that have already been used frequently. Default value is {frequency_penaltyDefault}.`,
   repeat_penalty: `Controls the likelihood of the model repeating the same phrases or sentences. Higher values (e.g., {repeat_penaltyMax}) reduce the likelihood of repetition, while lower values (e.g., {repeat_penaltyMin}) allow for more repetition. Default value is {repeat_penaltyDefault}.`,
 }
+
+export const LLM_CONFIG_FOR_MODELS = `
+You are professional expert for the LLM configuration, I am configuring the LLMConfig in the below format.
+
+**name** : provide the model name
+**modelName** : provide the ollama model name
+**version** : Provide  the version
+**description** : Provide  the description
+**temperatureMin** : Provide  the temperatureMin
+**temperatureMax**: Provide  the temperatureMax
+**temperatureDefault**: Provide  the temperatureDefault
+**top_pMin**: Provide  the top_pMin
+**top_pMax**: Provide  the top_pMax
+**top_pDefault**: Provide  the top_pDefault
+
+**top_kMin**: Provide  the top_kMin
+**top_kMax**: Provide  the top_kMax
+**top_kDefault**: Provide  the top_kDefault
+
+**max_tokensMin**: Provide  the max_tokensMin
+**max_tokensMax**: Provide  the max_tokensMax
+**max_tokensDefault**: Provide  the max_tokensDefault
+
+**presence_penaltyMin**: Provide  the presence_penaltyMin
+**presence_penaltyMax**: Provide  the presence_penaltyMax
+**presence_penaltyDefault**: Provide  the presence_penaltyDefault
+
+**frequency_penaltyMin**: Provide  the frequency_penaltyMin
+**frequency_penaltyMax**: Provide  the frequency_penaltyMax
+**frequency_penaltyDefault**: Provide  the frequency_penaltyDefault
+
+**repeat_penaltyMin**: Provide  the repeat_penaltyMin
+**repeat_penaltyMax**: Provide  the repeat_penaltyMax
+**repeat_penaltyDefault**: Provide  the repeat_penaltyDefault
+
+**defaultPrompt**: Provide  the defaultPrompt ( minimum characters size is 100 and maximum 1000) to
+ get precise information from the LLM
+
+Below is the modelName for which llm config is needed
+Model Name : {modelName}
+
+Please provide the data in the JSON format like shown in below format
+
+Format :  
+{FORMAT}
+
+`
+
+export const STOP_SEQUENCES: LabelValuePair[] = [
+  { label: 'Double New Line', value: '\n\n' },
+  { label: 'End of Text (OpenAI)', value: '<|endoftext|>' },
+  { label: 'User Prompt', value: 'User:' },
+  { label: 'Assistant Response', value: 'Assistant:' },
+  { label: 'Question Prefix', value: 'Q:' },
+  { label: 'Answer Prefix', value: 'A:' },
+]

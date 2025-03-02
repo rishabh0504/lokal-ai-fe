@@ -1,7 +1,7 @@
 'use client'
 
 import { Agent } from '@/app/(routes)/agent/types/type'
-import { LLMModel } from '@/app/(routes)/llm/types/type'
+import { LLMModelConfig } from '@/app/(routes)/llm/types/type'
 import { InfoCard } from '@/app/components/info-card'
 import InfoHoverCard from '@/app/components/info-card-hover'
 import useFetch from '@/app/hooks/useFetch'
@@ -56,13 +56,13 @@ interface Option {
   label: string
 }
 
-const getUpdatedParameters = (llmModel: Partial<LLMModel>): StringKeyStringValueType => {
+const getUpdatedParameters = (llmModel: Partial<LLMModelConfig>): StringKeyStringValueType => {
   const updatedValue: StringKeyStringValueType = {}
 
   Object.keys(LLM_AGENT_PARAMETERS).forEach((key: string) => {
-    const keyMin = `${key}Min` as keyof LLMModel
-    const keyMax = `${key}Max` as keyof LLMModel
-    const keyDefault = `${key}Default` as keyof LLMModel
+    const keyMin = `${key}Min` as keyof LLMModelConfig
+    const keyMax = `${key}Max` as keyof LLMModelConfig
+    const keyDefault = `${key}Default` as keyof LLMModelConfig
 
     let information: string = LLM_AGENT_PARAMETERS[key]
 
@@ -89,7 +89,7 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
   }
   const [isUpdate, setIsUpdate] = useState(false)
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false)
-  const [selectedLLM, setSelectedLLM] = useState<LLMModel | null>(null)
+  const [selectedLLM, setSelectedLLM] = useState<LLMModelConfig | null>(null)
 
   const llms = useSelector((state: RootState) => state.llms.items) || []
   const tools = useSelector((state: RootState) => state.toolConfigs.items) || []
@@ -165,7 +165,7 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
   })
 
   const modelOptions = useMemo(() => {
-    return llms.map((each: LLMModel) => ({ label: each.name, value: each.id }))
+    return llms.map((each: LLMModelConfig) => ({ label: each.name, value: each.id }))
   }, [llms])
 
   useEffect(() => {
@@ -302,7 +302,7 @@ const CreateAgent = ({ agentId, open, onClose }: CreateAgentProps) => {
     }
   }, [llmModelId, setValue, llms])
 
-  const foundLLMModel: Partial<LLMModel> = llms.find((llm) => llm.id === llmModelId) || {}
+  const foundLLMModel: Partial<LLMModelConfig> = llms.find((llm) => llm.id === llmModelId) || {}
 
   const UPDATED_LLM_AGENT_PARAMETERS: StringKeyStringValueType = getUpdatedParameters(foundLLMModel)
 

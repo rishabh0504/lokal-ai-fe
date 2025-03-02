@@ -1,6 +1,6 @@
 import { Agent } from '@/app/(routes)/agent/types/type'
 
-export type LLMModel = {
+export type LLMModelConfig = {
   id: string
   name: string
   modelName: string
@@ -44,7 +44,7 @@ export type LLMModel = {
   updated_at: string
 }
 
-export interface ModelResponse {
+export interface OllamaModelResponse {
   name: string
   modified_at: Date
   size: number

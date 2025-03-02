@@ -107,7 +107,7 @@ export default function ChatPage() {
   }, [sessionIdFromParams, allSessions, allAgents, dispatch, setActiveAgent])
 
   const initializeSSE = async (sessionId: string) => {
-    closeSSE() // Close any existing SSE connection before creating a new one
+    closeSSE()
 
     const token = await getToken()
 

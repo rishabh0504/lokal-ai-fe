@@ -20,7 +20,22 @@ export const SIDEBAR_CONFIG: SidebarType = {
       type: 'dashboard',
       iconName: 'history.png',
     },
-
+    {
+      title: 'Ollama Models',
+      url: '/ollama-models',
+      icon: SquareTerminal,
+      isActive: false,
+      iconName: 'llm.png',
+      type: 'ollama_models',
+    },
+    {
+      title: 'LLM Model',
+      url: '/llm',
+      icon: SquareTerminal,
+      isActive: false,
+      iconName: 'llm.png',
+      type: 'llm_model',
+    },
     {
       title: 'Agents',
       url: '/agent',
@@ -28,14 +43,6 @@ export const SIDEBAR_CONFIG: SidebarType = {
       isActive: false,
       type: 'agent',
       iconName: 'agents.png',
-    },
-    {
-      title: 'LLM Models',
-      url: '/llm',
-      icon: SquareTerminal,
-      isActive: false,
-      iconName: 'llm.png',
-      type: 'llm_model',
     },
     {
       title: 'Tools',
@@ -104,8 +111,10 @@ export const API_CONFIG = {
     session: 'sessions',
     root: 'chat',
   },
-  aiService: {
-    root: 'ai-services/models',
+  ollamaServices: {
+    root: 'ollama-services/models',
+    installModel: 'ollama-services/models/{modelName}/install',
+    removeModel: 'ollama-services/models/{modelName}',
   },
   toolConfig: {
     root: 'tools',
